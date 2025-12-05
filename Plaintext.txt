@@ -1,0 +1,124 @@
+📂 1. Structure Backend (Laravel)
+Area kerja Tim Backend (Orang 1 & 2)
+
+Fokus utama di sini adalah memisahkan logika Admin (yang butuh login) dan Guest (pengunjung biasa).
+
+app/
+├── Models/                  <-- Definisi Tabel Database
+│   ├── User.php
+│   ├── Genre.php
+│   ├── Comic.php
+│   ├── ComicGenre.php       (Pivot)
+│   ├── Chapter.php
+│   └── ChapterImage.php
+│
+├── Http/
+│   ├── Controllers/
+│   │   └── Api/             <-- SEMUA Controller ditaruh di sini
+│   │       ├── Auth/        <-- Login/Register Admin
+│   │       │   └── AuthController.php
+│   │       │
+│   │       ├── Admin/       <-- Area Kerja Backend 2 (Fitur Admin)
+│   │       │   ├── DashboardController.php
+│   │       │   ├── GenreController.php
+│   │       │   ├── ComicController.php
+│   │       │   └── ChapterController.php (Upload gambar disini)
+│   │       │
+│   │       └── Guest/      <-- Area Kerja Backend 2 (Fitur Pengunjung)
+│   │           ├── ComicListController.php
+│   │           └── ReaderController.php
+│   │
+│   ├── Requests/            <-- Validasi Input (Wajib biar controller bersih)
+│   │   ├── Auth/LoginRequest.php
+│   │   ├── StoreComicRequest.php
+│   │   └── StoreChapterRequest.php
+│   │
+│   └── Resources/           <-- Format JSON Response (Agar data rapi)
+│       ├── ComicResource.php
+│       └── ChapterResource.php
+│
+└── routes/
+    └── api.php              <-- PENTING: Pisahkan Route Group Admin & Public
+
+
+
+
+📂 2. Structure Frontend (React + Vite)
+
+resources/js/
+├── components/
+│   ├── ui/                  <-- JANGAN UBAH INI (Isinya komponen Shadcn: Button, Card, dll)
+│   │   ├── button.tsx
+│   │   ├── input.tsx
+│   │   └── ...
+│   │
+│   ├── admin/               <-- Komponen khusus Admin (Frontend 2)
+│   │   ├── AdminSidebar.tsx
+│   │   ├── ImageUploader.tsx
+│   │   └── DataTable.tsx
+│   │
+│   └── guest/              <-- Komponen khusus Pengunjung (Frontend 1)
+│       ├── ComicCard.tsx
+│       ├── HeroBanner.tsx
+│       └── ChapterList.tsx
+│
+├── layouts/                 <-- Kerangka Halaman
+│   ├── AdminLayout.tsx      (Ada Sidebar + Header Admin)
+│   ├── GuestLayout.tsx     (Ada Navbar + Footer User)
+│   └── AuthLayout.tsx       (Polosan untuk Login)
+│
+├── lib/
+│   └── utils.ts             (Bawaan Shadcn)
+│
+├── pages/
+│   ├── auth/
+│   │   └── Login.tsx
+│   │
+│   ├── admin/               <-- Area Kerja Frontend 2
+│   │   ├── Dashboard.tsx
+│   │   ├── comics/
+│   │   │   ├── Index.tsx    (Tabel list komik)
+│   │   │   ├── Create.tsx   (Form tambah komik)
+│   │   │   └── Edit.tsx
+│   │   └── genres/
+│   │       └── Index.tsx
+│   │
+│   └── guest/              <-- Area Kerja Frontend 1
+│       ├── Home.tsx         (Landing Page)
+│       ├── Search.tsx       (Hasil pencarian)
+│       ├── ComicDetail.tsx  (Info komik & list chapter)
+│       └── Reader.tsx       (Halaman baca komik)
+│
+├── services/                <-- KONEKSI KE API (Axios) - Biar rapi
+│   ├── api.ts               (Settingan dasar Axios)
+│   ├── authService.ts       (Login/Logout)
+│   └── comicService.ts      (Get data komik, upload, dll)
+│
+├── types/                   <-- Definisi TypeScript (Penting buat tim!)
+│   └── index.ts             (Interface User, Comic, Chapter)
+│
+├── App.tsx                  <-- Routing Utama (React Router)
+└── main.tsx                 (Entry point)
+
+
+
+📂 3. Structure File Storage (Penyimpanan Gambar)
+Ini otomatis diatur Laravel, tapi kalian harus paham alurnya.
+
+Karena ini aplikasi komik, gambarnya akan sangat banyak.
+
+storage/
+└── app/
+    └── public/
+        ├── covers/          <-- Simpan sampul komik disini
+        │   ├── one-piece.jpg
+        │   └── naruto.jpg
+        │
+        └── chapters/        <-- Simpan gambar chapter disini (Dikelompokkan per ID chapter)
+            ├── 101/         (ID Chapter)
+            │   ├── 01.jpg
+            │   ├── 02.jpg
+            │   └── ...
+            └── 102/
+                ├── 01.jpg
+                └── ...
