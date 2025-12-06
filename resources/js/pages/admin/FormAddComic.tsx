@@ -24,9 +24,61 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import axios, { AxiosError } from "axios";
+
+const formAddComicSchema = z.object({
+    title: z.string().min(1, { message: "Title is required" }),
+    slug: z
+        .string()
+        .min(1, { message: "Slug is required" })
+        .regex(/^\S*$/, "Tidak boleh ada spasi"),
+    author: z.string().min(1, { message: "Author is required" }),
+    status: z.string().min(1, { message: "Status is required" }),
+    synopsis: z.string().min(1, { message: "Synopsis is required" }),
+    cover: z.array(z.instanceof(File)).min(1, { message: "Cover is required" }),
+});
 
 const FormAddComic = () => {
-    const form = useForm();
+    const form = useForm<z.infer<typeof formAddComicSchema>>({
+        resolver: zodResolver(formAddComicSchema),
+        defaultValues: {
+            title: "",
+            slug: "",
+            author: "",
+            status: "",
+            synopsis: "",
+            cover: [],
+        },
+    });
+
+    const handleAddComic = async (
+        values: z.infer<typeof formAddComicSchema>
+    ) => {
+        const formData = new FormData();
+        formData.append("title", values.title);
+        formData.append("slug", values.slug);
+        formData.append("author", values.author);
+        formData.append("status", values.status);
+        formData.append("synopsis", values.synopsis);
+        values.cover.forEach((file) => {
+            formData.append("cover", file);
+        });
+        try {
+            const response = await axios.post("/api/comics", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            console.log("Success: ", response.data);
+            form.reset();
+        } catch (error) {
+            const axiosError = error as AxiosError;
+            console.error("Error: ", axiosError.response?.data);
+        }
+    };
+
     return (
         <AdminLayout>
             <div className="w-full space-y-6 my-8 mx-auto max-w-full">
@@ -42,7 +94,10 @@ const FormAddComic = () => {
                     <CardContent>
                         <div className="flex flex-col sm:flex-row items-center gap-4 mt-10">
                             <Form {...form}>
-                                <div className="flex flex-col w-full">
+                                <form
+                                    className="flex flex-col w-full"
+                                    onSubmit={form.handleSubmit(handleAddComic)}
+                                >
                                     <FormField
                                         control={form.control}
                                         name="title"
@@ -71,6 +126,7 @@ const FormAddComic = () => {
                                                     <Input
                                                         type="text"
                                                         placeholder="Example: one-piece, dragon-ball, solo-leveling, etc."
+                                                        {...field}
                                                     />
                                                 </FormControl>
                                             </FormItem>
@@ -92,47 +148,78 @@ const FormAddComic = () => {
                                             </FormItem>
                                         )}
                                     />
-                                    <Select>
-                                        <Label
-                                            htmlFor="status"
-                                            className="mt-3"
-                                        >
-                                            Status
-                                        </Label>
-                                        <SelectTrigger
-                                            className="w-full mt-3"
-                                            id="status"
-                                        >
-                                            <SelectValue placeholder="Status Comic" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectLabel>
+                                    <FormField
+                                        control={form.control}
+                                        name="status"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="mt-3">
                                                     Status
-                                                </SelectLabel>
-                                                <SelectItem value="ongoing">
-                                                    Ongoing
-                                                </SelectItem>
-                                                <SelectItem value="completed">
-                                                    Completed
-                                                </SelectItem>
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                    <div className="mt-5">
-                                        <Label htmlFor="synopsis">
-                                            Synopsis
-                                        </Label>
-                                        <Textarea
-                                            id="synopsis"
-                                            className="mt-3"
-                                            placeholder="Write Synopsis here etc..."
-                                        />
-                                    </div>
-                                    <div className="mt-5">
-                                        <Label>Upload Cover</Label>
-                                        <FileUploadDemo />
-                                    </div>
+                                                </FormLabel>
+                                                <Select
+                                                    value={field.value}
+                                                    onValueChange={
+                                                        field.onChange
+                                                    }
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger className="w-full mt-3">
+                                                            <SelectValue placeholder="Status Comic" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectGroup>
+                                                            <SelectLabel>
+                                                                Status
+                                                            </SelectLabel>
+                                                            <SelectItem value="ongoing">
+                                                                Ongoing
+                                                            </SelectItem>
+                                                            <SelectItem value="completed">
+                                                                Completed
+                                                            </SelectItem>
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="synopsis"
+                                        render={({ field }) => (
+                                            <FormItem className="mt-5">
+                                                <FormLabel htmlFor="synopsis">
+                                                    Synopsis
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Textarea
+                                                        id="synopsis"
+                                                        {...field}
+                                                        className="mt-3"
+                                                        placeholder="Write Synopsis here etc..."
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="cover"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Upload Cover
+                                                </FormLabel>
+                                                <FileUploadDemo
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                />
+                                            </FormItem>
+                                        )}
+                                    />
                                     <div className="mt-10 flex gap-5">
                                         <Button
                                             className="w-full"
@@ -148,7 +235,7 @@ const FormAddComic = () => {
                                             Cancel
                                         </Button>
                                     </div>
-                                </div>
+                                </form>
                             </Form>
                         </div>
                     </CardContent>

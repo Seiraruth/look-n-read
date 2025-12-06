@@ -6,11 +6,16 @@ import Dashboard from "./pages/admin/Dashboard";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import NotFound from "./pages/errors/NotFoutnd";
 import FormAddComic from "./pages/admin/FormAddComic";
+import AdminAuth from "./pages/auth/AdminAuth";
 
 const router = createBrowserRouter([
     {
         path: "/",
         element: "<h1>Hello World</h1>",
+    },
+    {
+        path: "/admin",
+        element: <AdminAuth />,
     },
     {
         path: "/admin/dashboard",

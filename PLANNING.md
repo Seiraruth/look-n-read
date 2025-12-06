@@ -1,134 +1,423 @@
-# 🚀 Planning Web App Komik Sederhana
+# 📖 Look 'N Read - Web App Komik Modern
 
-Dokumen ini berisi rancangan struktur database dan pembagian tugas tim untuk proyek Web App Komik (Laravel + React).
+> Platform interaktif untuk membaca dan mengelola koleksi komik digital dengan teknologi terkini.
 
-## 1. Struktur Database (Schema Design)
-
-Kita menggunakan **Relational Database** (MySQL/MariaDB/PostgreSQL). Berikut adalah tabel-tabel yang diperlukan:
-
-### A. Tabel Utama
-
-**1. `users` (Admin)**
-_Tabel bawaan Laravel, digunakan khusus untuk Admin login._
-
--   `id` (Primary Key)
--   `name` (Nama Admin)
--   `email` (Email Login)
--   `password` (Password Terenkripsi)
--   `timestamps` (created_at, updated_at)
-
-**2. `comics` (Data Komik)**
-_Menyimpan informasi umum tentang komik._
-
--   `id` (Primary Key)
--   `title` (Judul Komik, misal: "One Piece")
--   `slug` (URL friendly, misal: "one-piece" - _Unique_)
--   `synopsis` (Sinopsis/Deskripsi cerita - _Text_)
--   `author` (Nama Pengarang)
--   `cover_image` (Path lokasi file gambar sampul)
--   `status` (Enum: 'Ongoing', 'Completed')
--   `timestamps`
-
-**3. `genres` (Kategori)**
-_Master data untuk genre/kategori._
-
--   `id` (Primary Key)
--   `name` (Nama Genre, misal: "Action", "Romance", "Horror")
--   `slug` (misal: "action")
--   `timestamps`
-
-**4. `types` (Tipe Comic)**
-_Master data untuk Type Comic._
-
--   `id` (Primary Key)
--   `name` (Nama Type, misal: "Manhwa", "Manhua", "Manga")
--   `slug` (misal: "action")
--   `timestamps`
-
-**5. `chapters` (List Chapter)**
-_Menyimpan daftar chapter yang ada dalam satu komik._
-
--   `id` (Primary Key)
--   `comic_id` (Foreign Key -> comics)
--   `chapter_number` (Nomor Chapter, misal: 1, 10.5 - _Float/Decimal_)
--   `title` (Judul Chapter, opsional. Misal: "Pertarungan Dimulai")
--   `timestamps`
-
-### B. Tabel Detail & Relasi
-
-**6. `comic_genre` (Tabel Pivot / Penghubung)**
-_Menangani relasi Many-to-Many (Satu komik bisa punya banyak genre)._
-
--   `comic_id` (Foreign Key -> comics)
--   `genre_id` (Foreign Key -> genres)
-    _Kombinasi comic_id dan genre_id tidak boleh duplikat._
-
-**7. `chapter_images` (Gambar Halaman Komik)**
-_Menyimpan file gambar per halaman dalam satu chapter._
-
--   `id` (Primary Key)
--   `chapter_id` (Foreign Key -> chapters)
--   `image_path` (Lokasi file gambar halaman)
--   `page_number` (Urutan halaman: 1, 2, 3... penting agar halaman tidak acak)
+**Status:** 🚀 In Development | **Tech Stack:** Laravel 11 + React 18 + TypeScript + Tailwind CSS
 
 ---
 
-## 2. Pembagian Tugas Tim (4 Orang)
+## 📋 Daftar Isi
 
-Komposisi Tim: **2 Backend Developer** & **2 Frontend Developer**.
-
-### 🛠️ Tim Backend (Laravel 10)
-
-_Fokus: API, Database, Logika Bisnis, Keamanan._
-
-**👤 Backend 1: System Architect & User Management**
-
--   **Inisialisasi Project:** Setup Laravel, Git Repository, dan konfigurasi `.env`.
--   **Database Migration:** Membuat file migration untuk tabel `users`, `genres`, `comics`, dan `comic_genre`.
--   **Auth API:** Membuat fitur Login & Logout untuk Admin (menggunakan Sanctum).
--   **Master Data Genre:** Membuat CRUD (Create, Read, Update, Delete) untuk Genre.
--   **Seeding:** Membuat data dummy (palsu) untuk user dan genre agar frontend bisa testing.
-
-**👤 Backend 2: Core Logic & File Handling**
-
--   **Database Migration:** Membuat file migration untuk tabel `chapters` dan `chapter_images`.
--   **Comic CRUD:** Logika tambah/edit/hapus komik beserta upload cover image.
--   **Complex Logic (Chapter Upload):** Membuat fitur upload **Bulk Images** (banyak gambar sekaligus) untuk satu chapter, dan menyimpannya secara berurutan di database.
--   **Public API:** Membuat Endpoint khusus untuk pengunjung (User) yang "Read Only" (Cuma bisa baca, tidak bisa edit), misal:
-    -   `GET /api/comics` (List semua komik)
-    -   `GET /api/comics/{slug}` (Detail komik + list chapter)
-    -   `GET /api/chapter/{id}` (Ambil semua gambar dalam 1 chapter)
+1. [Arsitektur Database](#-arsitektur-database)
+2. [Struktur Tim & Tanggung Jawab](#-struktur-tim--tanggung-jawab)
+3. [Alur Penggunaan Aplikasi](#-alur-penggunaan-aplikasi)
+4. [Timeline & Milestone](#-timeline--milestone)
 
 ---
 
-### 🎨 Tim Frontend (React TS + Tailwind + Shadcn)
+## 📊 Arsitektur Database
 
-_Fokus: Tampilan, Interaksi User, Konsumsi API._
+Database menggunakan **Relational Model** dengan MySQL/PostgreSQL untuk memastikan integritas data dan skalabilitas.
 
-**👤 Frontend 1: Public Interface (User Pengunjung)**
+### 🎯 Tabel Inti
 
--   **Homepage:** Mendesain halaman utama yang menampilkan Grid daftar komik (dengan filter Genre).
--   **Detail Page:** Halaman detail komik (Info Author, Sinopsis, List Chapter).
--   **Chapter Reader (Fitur Utama):** Membuat halaman baca komik.
-    -   Tantangan: Menampilkan gambar panjang ke bawah (Vertical Scroll) atau per halaman (Slider).
-    -   Fitur Navigasi: Tombol "Next Chapter" dan "Prev Chapter".
--   **Search:** Fitur pencarian judul komik.
+#### `users` - Data Admin
 
-**👤 Frontend 2: Admin Dashboard (Backoffice)**
+Menyimpan kredensial dan informasi administrator sistem.
 
--   **Login Page:** Halaman login admin yang terhubung ke API Auth.
--   **Admin Layout:** Sidebar menu (Dashboard, Manage Komik, Manage Genre).
--   **Form Input Komik:** Desain form untuk input judul, sinopsis, dan upload cover.
--   **Form Input Chapter (Advanced):** Desain form upload yang mendukung **Drag & Drop** banyak gambar sekaligus untuk halaman komik.
--   **Management Table:** Tabel daftar komik dengan tombol Edit & Delete.
+| Field        | Type        | Keterangan                    |
+| ------------ | ----------- | ----------------------------- |
+| `id`         | INT PK      | Identifier unik               |
+| `name`       | VARCHAR     | Nama admin                    |
+| `email`      | VARCHAR UNQ | Email login (unik)            |
+| `password`   | VARCHAR     | Password terenkripsi (bcrypt) |
+| `role`       | ENUM        | 'admin', 'editor' (future)    |
+| `created_at` | TIMESTAMP   | Waktu pembuatan akun          |
+| `updated_at` | TIMESTAMP   | Waktu update terakhir         |
+
+#### `comics` - Katalog Komik
+
+Menyimpan informasi utama setiap judul komik.
+
+| Field         | Type        | Keterangan                                 |
+| ------------- | ----------- | ------------------------------------------ |
+| `id`          | INT PK      | Identifier unik                            |
+| `title`       | VARCHAR     | Judul komik (cth: "One Piece")             |
+| `slug`        | VARCHAR UNQ | URL-friendly identifier (cth: "one-piece") |
+| `synopsis`    | LONGTEXT    | Sinopsis cerita lengkap                    |
+| `author`      | VARCHAR     | Nama pengarang/penulis                     |
+| `artist`      | VARCHAR     | Nama ilustrator/seniman                    |
+| `cover_image` | VARCHAR     | Path ke file cover (guest/covers/)         |
+| `status`      | ENUM        | 'Ongoing', 'Completed', 'Hiatus'           |
+| `rating`      | DECIMAL     | Rating 1-10 dari user (future)             |
+| `view_count`  | INT         | Total views (untuk statistik)              |
+| `created_at`  | TIMESTAMP   | Tanggal upload ke platform                 |
+| `updated_at`  | TIMESTAMP   | Tanggal update terakhir                    |
+
+#### `genres` - Kategori
+
+Master data untuk klasifikasi genre komik.
+
+| Field         | Type        | Keterangan                                       |
+| ------------- | ----------- | ------------------------------------------------ |
+| `id`          | INT PK      | Identifier unik                                  |
+| `name`        | VARCHAR     | Nama genre (cth: "Action", "Romance", "Mystery") |
+| `slug`        | VARCHAR UNQ | URL-friendly version                             |
+| `description` | TEXT        | Deskripsi genre (opsional)                       |
+| `icon`        | VARCHAR     | Path ke icon genre (future)                      |
+| `created_at`  | TIMESTAMP   | -                                                |
+| `updated_at`  | TIMESTAMP   | -                                                |
+
+#### `types` - Tipe Format Komik
+
+Master data untuk membedakan format/asal komik.
+
+| Field        | Type        | Keterangan                                         |
+| ------------ | ----------- | -------------------------------------------------- |
+| `id`         | INT PK      | Identifier unik                                    |
+| `name`       | VARCHAR     | Nama type ("Manga", "Manhua", "Manhwa", "Webtoon") |
+| `slug`       | VARCHAR UNQ | URL-friendly version                               |
+| `created_at` | TIMESTAMP   | -                                                  |
+| `updated_at` | TIMESTAMP   | -                                                  |
+
+#### `chapters` - Daftar Chapter
+
+Menyimpan setiap chapter/episode dalam komik.
+
+| Field            | Type      | Keterangan                                     |
+| ---------------- | --------- | ---------------------------------------------- |
+| `id`             | INT PK    | Identifier unik                                |
+| `comic_id`       | INT FK    | Relasi ke tabel comics                         |
+| `chapter_number` | DECIMAL   | Nomor chapter (cth: 1, 10.5, 50 untuk special) |
+| `title`          | VARCHAR   | Judul chapter (opsional)                       |
+| `published_at`   | TIMESTAMP | Tanggal rilis chapter                          |
+| `page_count`     | INT       | Total halaman dalam chapter                    |
+| `created_at`     | TIMESTAMP | -                                              |
+| `updated_at`     | TIMESTAMP | -                                              |
+
+### 🔗 Tabel Relasi & Detail
+
+#### `comic_genre` - Pivot Table
+
+Relasi Many-to-Many antara komik dan genre (1 komik bisa multi-genre).
+
+| Field      | Type        | Keterangan                               |
+| ---------- | ----------- | ---------------------------------------- |
+| `comic_id` | INT FK      | Relasi ke comics                         |
+| `genre_id` | INT FK      | Relasi ke genres                         |
+|            | PRIMARY KEY | (comic_id, genre_id) - mencegah duplikat |
+
+#### `comic_type` - Pivot Table (Future)
+
+Relasi Many-to-Many antara komik dan type format.
+
+| Field      | Type        | Keterangan          |
+| ---------- | ----------- | ------------------- |
+| `comic_id` | INT FK      | Relasi ke comics    |
+| `type_id`  | INT FK      | Relasi ke types     |
+|            | PRIMARY KEY | (comic_id, type_id) |
+
+#### `chapter_images` - Halaman Komik
+
+Menyimpan setiap halaman/panel dalam chapter.
+
+| Field         | Type      | Keterangan                                            |
+| ------------- | --------- | ----------------------------------------------------- |
+| `id`          | INT PK    | Identifier unik                                       |
+| `chapter_id`  | INT FK    | Relasi ke chapters                                    |
+| `image_path`  | VARCHAR   | Path file gambar (guest/chapters/)                    |
+| `page_number` | TINYINT   | Urutan halaman (1, 2, 3, ...) - PENTING untuk sorting |
+| `image_size`  | INT       | Ukuran file dalam bytes (metadata)                    |
+| `width`       | SMALLINT  | Lebar gambar (pixel)                                  |
+| `height`      | SMALLINT  | Tinggi gambar (pixel)                                 |
+| `created_at`  | TIMESTAMP | -                                                     |
+
+**Index Rekomendasi:**
+
+-   `chapters(comic_id)` - untuk query cepat chapter by comic
+-   `chapter_images(chapter_id, page_number)` - untuk load halaman berurutan
 
 ---
 
-## 3. Workflow Singkat
+## 👥 Struktur Tim & Tanggung Jawab
 
-1. **Admin** login di Dashboard.
-2. **Admin** membuat Genre (Action, Comedy, dll).
-3. **Admin** membuat Komik baru (Upload Cover + Pilih Genre).
-4. **Admin** masuk ke komik tersebut, lalu "Tambah Chapter".
-5. **Admin** upload 20 gambar halaman komik sekaligus.
-6. **User (Pengunjung)** membuka web, melihat daftar komik, memilih chapter, dan membaca.
+**Komposisi:** 2 Backend Developer + 2 Frontend Developer
+
+### 🔧 Backend Team (Laravel 11)
+
+**Fokus:** REST API, Database Design, Business Logic, Security, File Management
+
+#### Backend Lead - Infrastructure & Auth
+
+**Tanggung Jawab:**
+
+-   ✅ Setup project Laravel 11 dengan struktur yang scalable
+-   ✅ Konfigurasi environment dan database
+-   ✅ Database migrations untuk tabel `users`, `comics`, `genres`, `types`
+-   ✅ Implementasi Authentication & Authorization (Sanctum/JWT)
+    -   Admin login endpoint
+    -   Token refresh mechanism
+    -   Role-based access control (future)
+-   ✅ CRUD API untuk Genre Management
+-   ✅ Database seeding dengan data dummy untuk testing
+-   ✅ API Documentation (Postman collection atau Swagger)
+-   ✅ Error handling & response standardization
+
+**Deliverables:**
+
+```
+- POST /api/auth/login (Admin)
+- POST /api/auth/logout
+- GET /api/genres (Admin & Guest)
+- POST /api/genres (Admin only)
+- PUT /api/genres/{id} (Admin only)
+- DELETE /api/genres/{id} (Admin only)
+```
+
+#### Backend Developer - Comics & Content
+
+**Tanggung Jawab:**
+
+-   ✅ Database migrations untuk `chapters`, `chapter_images`, `comic_type`
+-   ✅ Comic Management API (CRUD + Cover Upload)
+    -   Cover image upload dengan validasi & compression
+    -   Slug generation otomatis
+-   ✅ Chapter Management
+    -   Create/Edit/Delete chapter
+    -   Bulk image upload untuk halaman komik
+    -   Image ordering & storage optimization
+-   ✅ Guest Read-Only API (untuk user pengunjung)
+    -   Optimized query dengan pagination
+    -   Caching untuk performa
+-   ✅ File storage management
+    -   Organize uploaded files secara efisien
+    -   Cleanup mechanism untuk file orphan
+-   ✅ Unit tests untuk critical functions
+
+**Deliverables:**
+
+```
+Admin Endpoints:
+- POST /api/comics (Create with cover)
+- PUT /api/comics/{id} (Edit)
+- DELETE /api/comics/{id}
+- POST /api/comics/{id}/chapters
+- PUT /api/chapters/{id}
+- DELETE /api/chapters/{id}
+- POST /api/chapters/{id}/upload-pages (Bulk image upload)
+
+Guest Endpoints:
+- GET /api/comics (List with filters)
+- GET /api/comics/{slug} (Detail + chapters)
+- GET /api/chapters/{id}/images (All pages)
+- GET /api/genres
+```
+
+---
+
+### 🎨 Frontend Team (React 18 + TypeScript + Tailwind + Shadcn/ui)
+
+**Fokus:** UI/UX, Responsive Design, API Integration, User Experience
+
+#### Frontend Lead - Guest Interface
+
+**Tanggung Jawab:**
+
+-   ✅ Desain & implementasi Homepage
+    -   Hero section dengan featured comics
+    -   Grid komik dengan lazy loading
+    -   Filter & search functionality
+-   ✅ Detail Page
+    -   Comic info (cover, sinopsis, author, rating)
+    -   Chapter list dengan sorting
+    -   Genre badges
+-   ✅ **Reader Feature (Core)**
+    -   Vertical scrolling infinite load
+    -   Or: Page-by-page viewer dengan slider
+    -   Next/Prev chapter navigation
+    -   Progress indicator
+    -   Responsive untuk mobile/tablet
+-   ✅ Search & Filter System
+    -   Real-time search
+    -   Filter by genre
+    -   Sort by newest/popular/rating
+-   ✅ Performance optimization
+    -   Image lazy loading
+    -   Code splitting
+    -   State management (Zustand/Redux)
+
+**Key Features:**
+
+-   Smooth reading experience
+-   Responsive design mobile-first
+-   Loading skeleton untuk better UX
+-   Favorite comics (local storage - future: database)
+
+#### Frontend Developer - Admin Dashboard
+
+**Tanggung Jawab:**
+
+-   ✅ Admin authentication flow
+    -   Login form integration dengan API
+    -   Token storage & refresh handling
+    -   Protected routes
+-   ✅ Admin Dashboard Layout
+    -   Sidebar navigation
+    -   User profile & logout
+    -   Dashboard overview (stats cards)
+-   ✅ Comic Management UI
+    -   Form untuk create/edit comic
+    -   Image upload preview
+    -   Genre multi-select
+    -   Comic listing table dengan pagination
+    -   Edit & delete actions
+-   ✅ Chapter Management UI
+    -   Chapter listing per comic
+    -   **Advanced:** Drag & drop multiple images upload
+    -   Page reordering
+    -   Preview sebelum publish
+-   ✅ Genre Management
+    -   Simple CRUD interface
+-   ✅ Error handling & validation
+    -   Form validation
+    -   Toast notifications
+    -   Error boundaries
+
+**Tech Stack:**
+
+-   React Hook Form (form management)
+-   TanStack Query (data fetching)
+-   React Router (navigation)
+-   Shadcn/ui (components)
+-   Tailwind CSS (styling)
+
+---
+
+## 🎬 Alur Penggunaan Aplikasi
+
+### Flow Admin
+
+```
+1. Admin buka platform
+   ↓
+2. Login dengan email & password
+   ↓
+3. Dashboard
+   ├─ Manage Genre → Create "Action", "Comedy", "Drama"
+   ├─ Create Comic Baru
+   │  ├─ Input Judul, Sinopsis, Author
+   │  ├─ Upload Cover Image
+   │  ├─ Pilih Genre (multi-select)
+   │  └─ Simpan
+   │
+   └─ Open Comic yang sudah dibuat
+      ├─ Add Chapter Baru
+      │  ├─ Input Chapter Number & Title
+      │  ├─ Drag & Drop upload 20 gambar halaman
+      │  ├─ Verifikasi urutan halaman
+      │  └─ Publish Chapter
+      │
+      └─ Edit/Delete existing chapters
+```
+
+### Flow User (Pengunjung)
+
+```
+1. User buka homepage
+   ↓
+2. Lihat featured & grid komik terbaru
+   ↓
+3. Filter by genre (Action, Romance, dll) atau search
+   ↓
+4. Click komik → Lihat detail + chapter list
+   ↓
+5. Pilih chapter → Baca komik (vertical scroll atau page viewer)
+   ↓
+6. Navigasi next/prev chapter
+   ↓
+7. Back to homepage atau favorite komik ini
+```
+
+---
+
+## 📅 Timeline & Milestone
+
+### Phase 1: Foundation (Week 1-2)
+
+-   [ ] Project setup (Laravel + React boilerplate)
+-   [ ] Database design finalization & migrations
+-   [ ] Basic authentication implementation
+-   [ ] API documentation
+
+### Phase 2: Core Features (Week 3-4)
+
+-   [ ] Genre CRUD API & UI
+-   [ ] Comic management (create, upload cover, edit, delete)
+-   [ ] Chapter management
+-   [ ] Guest API endpoints
+
+### Phase 3: Advanced Features (Week 5-6)
+
+-   [ ] Bulk image upload untuk chapter pages
+-   [ ] Admin dashboard styling & UX polish
+-   [ ] Reader implementation (vertical scroll + pagination)
+-   [ ] Search & filter optimization
+
+### Phase 4: Polish & Testing (Week 7-8)
+
+-   [ ] Unit tests & integration tests
+-   [ ] Performance optimization
+-   [ ] Bug fixes & refinement
+-   [ ] Deployment preparation
+
+---
+
+## 🛠️ Tech Stack Summary
+
+| Layer             | Technology                           | Version |
+| ----------------- | ------------------------------------ | ------- |
+| **Backend**       | Laravel                              | 11.x    |
+| **API**           | REST (Sanctum)                       | -       |
+| **Database**      | MySQL/PostgreSQL                     | Latest  |
+| **Frontend**      | React                                | 18.x    |
+| **Language**      | TypeScript                           | 5.x     |
+| **Styling**       | Tailwind CSS                         | 3.x     |
+| **UI Components** | Shadcn/ui                            | Latest  |
+| **State**         | Zustand/TanStack Query               | -       |
+| **Testing**       | PHPUnit (Backend), Vitest (Frontend) | Latest  |
+
+---
+
+## 📝 Catatan Penting
+
+✅ **Database Best Practices:**
+
+-   Gunakan soft deletes untuk comics & chapters (future)
+-   Index pada `slug`, `comic_id`, `chapter_id`, `page_number`
+-   Implement database transactions untuk bulk operations
+
+✅ **Security:**
+
+-   Validate & sanitize semua input
+-   Use CORS properly untuk API
+-   Implement rate limiting untuk upload
+-   Secure file storage (tidak guest/downloadable langsung)
+
+✅ **Performance:**
+
+-   Image compression pada upload
+-   Paginate large lists
+-   Cache frequently accessed data
+-   Lazy load images di frontend
+-   CDN untuk static assets (future)
+
+✅ **Maintainability:**
+
+-   Follow PSR-12 (PHP) dan ESLint config (JS)
+-   Write meaningful commits
+-   Comment complex logic
+-   Keep components small & reusable
+
+---
+
+**Last Updated:** December 6, 2025

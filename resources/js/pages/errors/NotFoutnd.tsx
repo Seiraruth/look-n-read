@@ -5,7 +5,7 @@ const NotFound = () => {
     return (
         <div className="mx-auto flex min-h-dvh flex-col items-center justify-center gap-8 p-8 md:gap-12 md:p-16">
             <img
-                src="https://ui.shadcn.com/placeholder.svg"
+                src="https://cdn.dribbble.com/userupload/22333900/file/original-8a3c8d97c89df803fa59f90e0aa8e797.gif"
                 alt="placeholder image"
                 className="aspect-video w-240 rounded-xl object-cover dark:brightness-[0.95] dark:invert"
             />
