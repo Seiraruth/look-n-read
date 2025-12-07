@@ -22,6 +22,8 @@ import {
 } from "../ui/form";
 import { Link, useNavigate } from "react-router-dom";
 import axios, { AxiosError } from "axios";
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const AdminFormLoginSchema = z.object({
     email: z.string().email().min(1, { message: "Email is required" }),
@@ -33,6 +35,9 @@ export function AdminFormLogin({
     ...props
 }: React.ComponentProps<"div">) {
     const navigate = useNavigate();
+    const { adminLogin } = useAuth();
+    const [error, setError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const form = useForm<z.infer<typeof AdminFormLoginSchema>>({
         resolver: zodResolver(AdminFormLoginSchema),
         defaultValues: {
@@ -44,12 +49,17 @@ export function AdminFormLogin({
     const handleLogin = async (
         values: z.infer<typeof AdminFormLoginSchema>
     ) => {
+        setError("");
+        setIsLoading(true);
         try {
-            const { data } = await axios.post("/auth/login", values);
+            await adminLogin(values.email, values.password);
             navigate("/admin/dashboard");
         } catch (error) {
             const axiosError = error as AxiosError;
             console.error("Error: ", axiosError.response?.data);
+            setError("Email atau password salah");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -61,6 +71,14 @@ export function AdminFormLogin({
                     <CardDescription>
                         Enter your email below to login to your account
                     </CardDescription>
+
+                    <div>
+                        {error && (
+                            <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+                                {error}
+                            </div>
+                        )}
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>

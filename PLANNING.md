@@ -31,7 +31,6 @@ Menyimpan kredensial dan informasi administrator sistem.
 | `name`       | VARCHAR     | Nama admin                    |
 | `email`      | VARCHAR UNQ | Email login (unik)            |
 | `password`   | VARCHAR     | Password terenkripsi (bcrypt) |
-| `role`       | ENUM        | 'admin', 'editor' (future)    |
 | `created_at` | TIMESTAMP   | Waktu pembuatan akun          |
 | `updated_at` | TIMESTAMP   | Waktu update terakhir         |
 
@@ -69,13 +68,13 @@ Master data untuk klasifikasi genre komik.
 
 Master data untuk membedakan format/asal komik.
 
-| Field        | Type        | Keterangan                                         |
-| ------------ | ----------- | -------------------------------------------------- |
-| `id`         | INT PK      | Identifier unik                                    |
-| `name`       | VARCHAR     | Nama type ("Manga", "Manhua", "Manhwa", "Webtoon") |
-| `slug`       | VARCHAR UNQ | URL-friendly version                               |
-| `created_at` | TIMESTAMP   | -                                                  |
-| `updated_at` | TIMESTAMP   | -                                                  |
+| Field        | Type        | Keterangan                              |
+| ------------ | ----------- | --------------------------------------- |
+| `id`         | INT PK      | Identifier unik                         |
+| `name`       | VARCHAR     | Nama type ("Manga", "Manhua", "Manhwa") |
+| `slug`       | VARCHAR UNQ | URL-friendly version                    |
+| `created_at` | TIMESTAMP   | -                                       |
+| `updated_at` | TIMESTAMP   | -                                       |
 
 #### `chapters` - Daftar Chapter
 

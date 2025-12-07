@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,7 +21,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AdminLayout from "@/components/layouts/admin/AdminLayout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const usersData = [
     {
