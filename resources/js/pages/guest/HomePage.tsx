@@ -2,10 +2,16 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 export default function HomePage() {
+    const comicTypes = [
+        { name: "Manga", count: 150, seed: "manga" },
+        { name: "Manhwa", count: 89, seed: "manhwa" },
+        { name: "Manhua", count: 67, seed: "manhua" },
+    ];
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="min-h-screen bg-slate-950">
             {/* Header */}
-            <nav className="bg-black/20 backdrop-blur-sm border-b border-white/10">
+            <nav className="bg-black/40 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center">
@@ -13,81 +19,81 @@ export default function HomePage() {
                                 Look 'N Read
                             </h1>
                         </div>
-                        <div>
-                            <Link
-                                to="/admin/login"
-                                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-                            >
-                                Admin Login
-                            </Link>
+                        <div className="flex gap-4">
+                            <button className="px-4 py-2 text-gray-300 hover:text-white transition-colors">
+                                Latest
+                            </button>
+                            <button className="px-4 py-2 text-gray-300 hover:text-white transition-colors">
+                                Popular
+                            </button>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            {/* Hero Section */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                <div className="text-center">
-                    <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-                        Welcome to <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-                            Look 'N Read
-                        </span>
-                    </h1>
-                    <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                        Platform membaca komik digital modern. Temukan ribuan
-                        komik dari berbagai genre.
-                    </p>
-
-                    {/* Coming Soon Badge */}
-                    <div className="inline-block mb-8">
-                        <span className="px-6 py-3 bg-yellow-500/20 text-yellow-300 rounded-full text-sm font-semibold border border-yellow-500/30">
-                            🚀 Coming Soon
-                        </span>
-                    </div>
-
-                    {/* Feature Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-                        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-                            <div className="text-4xl mb-4">📚</div>
-                            <h3 className="text-xl font-semibold text-white mb-2">
-                                Koleksi Lengkap
-                            </h3>
-                            <p className="text-gray-400">
-                                Ribuan judul komik dari berbagai genre tersedia
-                            </p>
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Type Categories */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    {comicTypes.map((type) => (
+                        <div
+                            key={type.name}
+                            className="group cursor-pointer bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-xl p-6 border border-white/10 hover:border-purple-500/50 transition-all"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-2xl font-bold text-white">
+                                    {type.name}
+                                </h2>
+                                <span className="text-sm text-gray-400">
+                                    {type.count} titles
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-4 gap-2">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div
+                                        key={i}
+                                        className="aspect-[2/3] rounded-lg overflow-hidden"
+                                    >
+                                        <img
+                                            src={`https://picsum.photos/seed/${type.seed}${i}/200/300`}
+                                            alt={`${type.name} ${i}`}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
+                    ))}
+                </div>
 
-                        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-                            <div className="text-4xl mb-4">🎨</div>
-                            <h3 className="text-xl font-semibold text-white mb-2">
-                                Kualitas Tinggi
-                            </h3>
-                            <p className="text-gray-400">
-                                Baca komik dengan kualitas gambar terbaik
-                            </p>
-                        </div>
-
-                        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-                            <div className="text-4xl mb-4">📱</div>
-                            <h3 className="text-xl font-semibold text-white mb-2">
-                                Responsive Design
-                            </h3>
-                            <p className="text-gray-400">
-                                Baca di mana saja, dari desktop hingga mobile
-                            </p>
-                        </div>
+                {/* Latest Updates */}
+                <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-white mb-6">
+                        Latest Updates
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
+                            <div key={i} className="group cursor-pointer">
+                                <div className="aspect-[2/3] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all">
+                                    <img
+                                        src={`https://picsum.photos/seed/comic${i}/300/450`}
+                                        alt={`Comic ${i}`}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
+                                <div className="mt-2">
+                                    <h3 className="text-sm font-medium text-gray-300 truncate group-hover:text-purple-400 transition-colors">
+                                        Comic Title {i}
+                                    </h3>
+                                    <p className="text-xs text-gray-600">
+                                        Chapter {i * 5}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
-
-            {/* Footer */}
-            <footer className="absolute bottom-0 w-full py-6 text-center text-gray-400">
-                <p>
-                    &copy; 2025 Look 'N Read. Built with Laravel + React +
-                    TypeScript
-                </p>
-            </footer>
         </div>
     );
 }
