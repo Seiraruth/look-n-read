@@ -7,6 +7,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import NotFound from "./pages/errors/NotFoutnd";
 import FormAddComic from "./pages/admin/FormAddComic";
 import AdminAuth from "./pages/auth/AdminAuth";
+import HomePage from "./pages/guest/HomePage";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
@@ -16,7 +17,7 @@ function App() {
             <AuthProvider>
                 <Routes>
                     {/* Guest Routes */}
-                    <Route path="/" element={<div>HomePage</div>} />
+                    <Route path="/" element={<HomePage />} />
 
                     {/* Admin Auth Routes */}
                     <Route path="/admin/login" element={<AdminAuth />} />
