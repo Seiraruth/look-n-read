@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ComicController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,9 +23,17 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth/admin')->group(function () {
     Route::post('/login', [AuthController::class, 'adminLogin']);
     Route::post('/logout', [AuthController::class, 'adminLogout'])
-        ->middleware('auth:sanctum');
+    ->middleware('auth:sanctum');
     Route::get('/me', [AuthController::class, 'adminMe'])
-        ->middleware('auth:sanctum');
+    ->middleware('auth:sanctum');
     Route::post('/refresh', [AuthController::class, 'adminRefresh'])
-        ->middleware('auth:sanctum');
+    ->middleware('auth:sanctum');
 });
+
+// Comic Routes
+Route::get('/comics', [ComicController::class, 'index']); // List all comics
+Route::post('/comics', [ComicController::class, 'store']); // Create comic
+Route::get('/comics/{id}', [ComicController::class, 'show']); // Show by ID
+Route::get('/comics/slug/{slug}', [ComicController::class, 'showBySlug']); // Show by slug
+Route::put('/comics/{id}', [ComicController::class, 'update']); // Update comic
+Route::delete('/comics/{id}', [ComicController::class, 'destroy']); // Delete comic
