@@ -1,7 +1,5 @@
-"use client";
-
 import * as React from "react";
-import { Camera, Book, DiamondPlus } from "lucide-react";
+import {Book} from "lucide-react";
 
 import {
     Sidebar,
@@ -26,11 +24,6 @@ const data = {
             title: "All Comics",
             url: "http://look-n-read.test/admin/dashboard",
             icon: Book,
-        },
-        {
-            title: "Add Comic",
-            url: "http://look-n-read.test/admin/add",
-            icon: DiamondPlus,
         },
     ],
 };

@@ -36,6 +36,7 @@ const formAddComicSchema = z.object({
         .regex(/^\S*$/, "Tidak boleh ada spasi"),
     author: z.string().min(1, { message: "Author is required" }),
     status: z.string().min(1, { message: "Status is required" }),
+    type: z.string().min(1, { message: "Type is required" }),
     synopsis: z.string().min(1, { message: "Synopsis is required" }),
     cover: z.array(z.instanceof(File)).min(1, { message: "Cover is required" }),
 });
@@ -48,6 +49,7 @@ const FormAddComic = () => {
             slug: "",
             author: "",
             status: "",
+            type: "",
             synopsis: "",
             cover: [],
         },
@@ -60,17 +62,22 @@ const FormAddComic = () => {
         formData.append("title", values.title);
         formData.append("slug", values.slug);
         formData.append("author", values.author);
+        formData.append("type", values.type);
         formData.append("status", values.status);
         formData.append("synopsis", values.synopsis);
         values.cover.forEach((file) => {
-            formData.append("cover", file);
+            formData.append("cover_image", file);
         });
         try {
-            const response = await axios.post("/api/comics", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            const response = await axios.post(
+                "/api/auth/admin/comics",
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
             console.log("Success: ", response.data);
             form.reset();
         } catch (error) {
@@ -148,6 +155,48 @@ const FormAddComic = () => {
                                             </FormItem>
                                         )}
                                     />
+                                    {/* Select Type Comic */}
+                                    <FormField
+                                        control={form.control}
+                                        name="type"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="mt-3">
+                                                    Type
+                                                </FormLabel>
+                                                <Select
+                                                    value={field.value}
+                                                    onValueChange={
+                                                        field.onChange
+                                                    }
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger className="w-full mt-3">
+                                                            <SelectValue placeholder="Type Comic" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectGroup>
+                                                            <SelectLabel>
+                                                                Type
+                                                            </SelectLabel>
+                                                            <SelectItem value="manga">
+                                                                Manga
+                                                            </SelectItem>
+                                                            <SelectItem value="manhua">
+                                                                Manhua
+                                                            </SelectItem>
+                                                            <SelectItem value="manhwa">
+                                                                Manhwa
+                                                            </SelectItem>
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    {/* Select Status Comic */}
                                     <FormField
                                         control={form.control}
                                         name="status"

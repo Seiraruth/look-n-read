@@ -47,6 +47,7 @@ class ComicController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:comics,slug',
             'author' => 'required|string|max:255',
             'status' => 'required|in:ongoing,completed',
             'type' => 'required|in:manga,manhwa,manhua',
