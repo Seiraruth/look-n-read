@@ -74,27 +74,26 @@ class ComicController extends Controller
     /**
      * Display the specified comic.
      */
-    public function show($id)
+    public function show(Comic $comic)
     {
-        $comic = Comic::findOrFail($id);
+        // $comic = Comic::findOrFail($id);
         return response()->json($comic);
     }
 
     /**
      * Display the specified comic by slug.
      */
-    public function showBySlug($slug)
-    {
-        $comic = Comic::where('slug', $slug)->firstOrFail();
-        return response()->json($comic);
-    }
+    // public function showBySlug($slug)
+    // {
+    //     $comic = Comic::where('slug', $slug)->firstOrFail();
+    //     return response()->json($comic);
+    // }
 
     /**
      * Update the specified comic.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Comic $comic)
     {
-        $comic = Comic::findOrFail($id);
 
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',

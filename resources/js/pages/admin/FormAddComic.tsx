@@ -27,6 +27,9 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { AxiosError } from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { ChevronLeft, X } from "lucide-react";
+import { toast } from "sonner";
 
 const formAddComicSchema = z.object({
     title: z.string().min(1, { message: "Title is required" }),
@@ -42,6 +45,7 @@ const formAddComicSchema = z.object({
 });
 
 const FormAddComic = () => {
+    const navigate = useNavigate();
     const form = useForm<z.infer<typeof formAddComicSchema>>({
         resolver: zodResolver(formAddComicSchema),
         defaultValues: {
@@ -78,6 +82,17 @@ const FormAddComic = () => {
                     },
                 }
             );
+            toast.success(response.data.message, {
+                position: "top-center",
+                duration: 1500,
+                style: {
+                    "--normal-bg":
+                        "light-dark(var(--color-green-600), var(--color-green-400))",
+                    "--normal-text": "var(--color-white)",
+                    "--normal-border":
+                        "light-dark(var(--color-green-600), var(--color-green-400))",
+                } as React.CSSProperties,
+            });
             console.log("Success: ", response.data);
             form.reset();
         } catch (error) {
@@ -92,9 +107,12 @@ const FormAddComic = () => {
                 {/* Main Card */}
                 <Card className="pb-0 gap-0 mx-6 md:mx-8">
                     <CardHeader className="border-b border-border gap-0">
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <div className="flex gap-10  items-end">
+                            <Link to={"/admin/dashboard"}>
+                                <ChevronLeft className="size-8 text-primary hover:text-primary/60 transition-all duration-300" />
+                            </Link>
                             <h1 className="text-primary text-4xl font-bold capitalize">
-                                Add New comic
+                                Add comic
                             </h1>
                         </div>
                     </CardHeader>
@@ -258,7 +276,7 @@ const FormAddComic = () => {
                                         control={form.control}
                                         name="cover"
                                         render={({ field }) => (
-                                            <FormItem>
+                                            <FormItem className="mt-3">
                                                 <FormLabel>
                                                     Upload Cover
                                                 </FormLabel>
@@ -277,6 +295,9 @@ const FormAddComic = () => {
                                             Add Comic
                                         </Button>
                                         <Button
+                                            onClick={() =>
+                                                navigate("/admin/dashboard")
+                                            }
                                             type="reset"
                                             variant={"outline"}
                                             className="w-full"

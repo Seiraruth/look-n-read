@@ -45,7 +45,7 @@ export function FileUploadDemo({ value, onChange }: FileUploadDemoTypes) {
                         <Upload className="size-6 text-muted-foreground" />
                     </div>
                     <p className="font-medium text-sm">
-                        Drag & drop files here
+                        Drag & drop cover here
                     </p>
                     <p className="text-muted-foreground text-xs">
                         Or click to browse (max 2 files, up to 5MB each)

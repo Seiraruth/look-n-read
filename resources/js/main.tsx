@@ -11,6 +11,8 @@ import HomePage from "./pages/guest/HomePage";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import FormEditComic from "./pages/admin/FormEditComic";
+import { Toaster } from "./components/ui/sonner";
+import Chapters from "./pages/admin/Chapters";
 
 function App() {
     return (
@@ -37,6 +39,7 @@ function App() {
                         }
                     />
 
+                    {/* Route Add Form Admin */}
                     <Route
                         path="/admin/add"
                         element={
@@ -46,11 +49,22 @@ function App() {
                         }
                     />
 
+                    {/* Route Edit Form Admin */}
                     <Route
-                        path="admin/edit/{:id}"
+                        path="admin/edit/:id"
                         element={
                             <ProtectedRoute>
                                 <FormEditComic />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Route Chapters Admin */}
+                    <Route
+                        path="/admin/chapters/:id"
+                        element={
+                            <ProtectedRoute>
+                                <Chapters />
                             </ProtectedRoute>
                         }
                     />
@@ -68,6 +82,7 @@ if (rootElement) {
     createRoot(rootElement).render(
         <React.StrictMode>
             <App />
+            <Toaster />
         </React.StrictMode>
     );
 }

@@ -27,21 +27,33 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { AxiosError } from "axios";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft } from "lucide-react";
+import { toast } from "sonner";
 
 const formAddComicSchema = z.object({
     title: z.string().min(1, { message: "Title is required" }),
     slug: z
         .string()
         .min(1, { message: "Slug is required" })
-        .regex(/^\S*$/, "Tidak boleh ada spasi"),
+        .regex(/^\S*$/, "No spaces allowed"),
     author: z.string().min(1, { message: "Author is required" }),
     status: z.string().min(1, { message: "Status is required" }),
     type: z.string().min(1, { message: "Type is required" }),
     synopsis: z.string().min(1, { message: "Synopsis is required" }),
-    cover: z.array(z.instanceof(File)).min(1, { message: "Cover is required" }),
+    cover: z.array(z.instanceof(File)).optional(),
 });
 
+interface ComicType {
+    image_url: string;
+}
+
 const FormEditComic = () => {
+    const { id } = useParams();
+    const [comic, setComic] = useState<ComicType>();
+    const navigate = useNavigate();
+
     const form = useForm<z.infer<typeof formAddComicSchema>>({
         resolver: zodResolver(formAddComicSchema),
         defaultValues: {
@@ -55,6 +67,29 @@ const FormEditComic = () => {
         },
     });
 
+    const fetchData = useCallback(async () => {
+        try {
+            const response = await axios.get(`/api/auth/admin/comics/${id}`);
+            setComic(response.data);
+            form.reset({
+                title: response.data.title,
+                slug: response.data.slug,
+                author: response.data.author,
+                status: response.data.status,
+                type: response.data.type,
+                synopsis: response.data.synopsis,
+                cover: [],
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }, [id, form, setComic]);
+
+    useEffect(() => {
+        fetchData();
+        console.log("test");
+    }, [fetchData]);
+
     const handleAddComic = async (
         values: z.infer<typeof formAddComicSchema>
     ) => {
@@ -65,12 +100,19 @@ const FormEditComic = () => {
         formData.append("type", values.type);
         formData.append("status", values.status);
         formData.append("synopsis", values.synopsis);
-        values.cover.forEach((file) => {
-            formData.append("cover_image", file);
-        });
+
+        // Method PUT for update (because laravel need the method PUT for handle the UPDATE Data)
+        formData.append("_method", "PUT");
+
+        // Just send cover_image if user uploaded a file
+        if (values.cover && values.cover.length > 0) {
+            values.cover.forEach((file) => {
+                formData.append("cover_image", file);
+            });
+        }
         try {
             const response = await axios.post(
-                "/api/auth/admin/comics",
+                `/api/auth/admin/comics/${id}`,
                 formData,
                 {
                     headers: {
@@ -78,7 +120,11 @@ const FormEditComic = () => {
                     },
                 }
             );
-            console.log("Success: ", response.data);
+            toast.success(response.data.message, {
+                position: "top-center",
+                duration: 1500,
+            });
+            fetchData();
             form.reset();
         } catch (error) {
             const axiosError = error as AxiosError;
@@ -92,7 +138,10 @@ const FormEditComic = () => {
                 {/* Main Card */}
                 <Card className="pb-0 gap-0 mx-6 md:mx-8">
                     <CardHeader className="border-b border-border gap-0">
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <div className="flex items-end gap-10">
+                            <Link to={"/admin/dashboard"}>
+                                <ChevronLeft className="size-8 text-primary hover:text-primary/60 transition-all duration-300" />
+                            </Link>
                             <h1 className="text-primary text-4xl font-bold capitalize">
                                 Update Comic
                             </h1>
@@ -247,6 +296,8 @@ const FormEditComic = () => {
                                                         id="synopsis"
                                                         {...field}
                                                         className="mt-3"
+                                                        rows={10}
+                                                        cols={10}
                                                         placeholder="Write Synopsis here etc..."
                                                     />
                                                 </FormControl>
@@ -254,29 +305,45 @@ const FormEditComic = () => {
                                             </FormItem>
                                         )}
                                     />
-                                    <FormField
-                                        control={form.control}
-                                        name="cover"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>
-                                                    Upload Cover
-                                                </FormLabel>
-                                                <FileUploadDemo
-                                                    value={field.value}
-                                                    onChange={field.onChange}
-                                                />
-                                            </FormItem>
-                                        )}
-                                    />
+                                    <div className="grid grid-cols-2 mt-10">
+                                        <div className="flex justify-center">
+                                            {comic?.image_url && (
+                                                <div className="mb-4">
+                                                    <img
+                                                        src={comic.image_url}
+                                                        alt="Current Cover"
+                                                        className="w-[180px] object-cover rounded-md mt-2 border"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <FormField
+                                            control={form.control}
+                                            name="cover"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FileUploadDemo
+                                                        value={field.value}
+                                                        onChange={
+                                                            field.onChange
+                                                        }
+                                                    />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+
                                     <div className="mt-10 flex gap-5">
                                         <Button
                                             className="w-full"
                                             type="submit"
                                         >
-                                            Add Comic
+                                            Update Comic
                                         </Button>
                                         <Button
+                                            onClick={() =>
+                                                navigate("/admin/dashboard")
+                                            }
                                             type="reset"
                                             variant={"outline"}
                                             className="w-full"

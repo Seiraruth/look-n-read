@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AdminLayout from "@/components/layouts/admin/AdminLayout";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { Link } from "react-router-dom";
 import axios from "axios";
-import { authService } from "@/services/authService";
 import { ComicsType } from "@/types/index.type";
 
 const Dashboard = () => {
@@ -39,7 +37,6 @@ const Dashboard = () => {
     );
 
     const handleDeleteComic = async (id: number) => {
-        console.log(id);
         try {
             await axios.delete(`/api/auth/admin/comics/${id}`);
             setComics((prevComics) =>
@@ -63,7 +60,6 @@ const Dashboard = () => {
         fetchData();
     }, [fetchData]);
 
-    console.log(comics);
     return (
         <AdminLayout>
             <div className="w-full space-y-6 my-8 mx-auto max-w-full">
@@ -75,7 +71,7 @@ const Dashboard = () => {
                                 <div className="relative flex-1 max-w-sm">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                        placeholder="Search user"
+                                        placeholder="Search comic"
                                         className="pl-10"
                                     />
                                 </div>
@@ -88,30 +84,6 @@ const Dashboard = () => {
                                         <Filter className="h-4 w-4 mr-2" />
                                         Filter
                                     </Button>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="cursor-pointer"
-                                            >
-                                                <Download className="h-4 w-4 mr-2" />
-                                                Export
-                                                <ChevronDown className="h-4 w-4 ml-2" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem className="cursor-pointer">
-                                                Export as CSV
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem className="cursor-pointer">
-                                                Export as Excel
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem className="cursor-pointer">
-                                                Export as PDF
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
                                     <Button
                                         size="sm"
                                         className="bg-primary cursor-pointer"
@@ -121,7 +93,7 @@ const Dashboard = () => {
                                             className="flex gap-2"
                                         >
                                             <Plus className="h-4 w-4 mr-2" />
-                                            Add User
+                                            Add comic
                                         </Link>
                                     </Button>
                                 </div>
@@ -155,9 +127,9 @@ const Dashboard = () => {
                                     </thead>
                                     <tbody>
                                         {comics.length > 0 &&
-                                            currentComics.map((user) => (
+                                            currentComics.map((comic) => (
                                                 <tr
-                                                    key={user.id}
+                                                    key={comic.id}
                                                     className="border-b border-border hover:bg-muted/30 transition-colors"
                                                 >
                                                     <td className="p-4">
@@ -165,10 +137,10 @@ const Dashboard = () => {
                                                             <Avatar className="h-20 w-20 bg-muted relative">
                                                                 <AvatarImage
                                                                     src={
-                                                                        user.image_url
+                                                                        comic.image_url
                                                                     }
                                                                     alt={
-                                                                        user.title
+                                                                        comic.title
                                                                     }
                                                                     className="absolute top-0 left-0 object-cover"
                                                                 />
@@ -177,21 +149,21 @@ const Dashboard = () => {
                                                     </td>
                                                     <td className="p-4">
                                                         <span className="text-sm text-muted-foreground">
-                                                            {user.title}
+                                                            {comic.title}
                                                         </span>
                                                     </td>
                                                     <td className="p-4">
                                                         <span className="text-sm font-medium text-foreground text-nowrap">
-                                                            {user.type}
+                                                            {comic.type}
                                                         </span>
                                                     </td>
                                                     <td className="p-4 text-center">
-                                                        {user.status ? (
+                                                        {comic.status ? (
                                                             <Badge
                                                                 variant="outline"
                                                                 className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800"
                                                             >
-                                                                {user.status}
+                                                                {comic.status}
                                                             </Badge>
                                                         ) : (
                                                             <span className="text-sm text-muted-foreground">
@@ -202,7 +174,7 @@ const Dashboard = () => {
                                                     <td className="p-4">
                                                         <span className="text-sm text-muted-foreground text-nowrap">
                                                             {new Date(
-                                                                user.created_at
+                                                                comic.created_at
                                                             ).toLocaleDateString(
                                                                 "en-EN",
                                                                 {
@@ -229,16 +201,29 @@ const Dashboard = () => {
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
                                                                 <DropdownMenuItem className="cursor-pointer">
-                                                                    Edit
+                                                                    <Button className="w-full">
+                                                                        <Link
+                                                                            to={`/admin/edit/${comic.id}`}
+                                                                        >
+                                                                            Edit
+                                                                        </Link>
+                                                                    </Button>
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem className="cursor-pointer">
-                                                                    View Details
+                                                                    <Button
+                                                                        className="w-full"
+                                                                        variant={
+                                                                            "outline"
+                                                                        }
+                                                                    >
+                                                                        Chapters
+                                                                    </Button>
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem className="cursor-pointer">
                                                                     <Button
                                                                         onClick={() =>
                                                                             handleDeleteComic(
-                                                                                user.id
+                                                                                comic.id
                                                                             )
                                                                         }
                                                                         className="bg-destructive hover:bg-destructive/80 w-full"
