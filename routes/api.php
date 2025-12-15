@@ -31,9 +31,9 @@ Route::prefix('auth/admin')->group(function () {
     // Comic Routes
     Route::get('/comics', [ComicController::class, 'index']); // List all comics
     Route::post('/comics', [ComicController::class, 'store']); // Create comic
-    Route::get('/comics/{id}', [ComicController::class, 'show']); // Show by ID
+    Route::get('/comics/{comic:id}', [ComicController::class, 'show']); // Show by ID
     Route::get('/comics/slug/{slug}', [ComicController::class, 'showBySlug']); // Show by slug
     Route::put('/comics/{id}', [ComicController::class, 'update']); // Update comic
-    Route::delete('/comics/{id}', [ComicController::class, 'destroy']); // Delete comic
+    Route::delete('/comics/{comic:id}', [ComicController::class, 'destroy']); // Delete comic
 });
 

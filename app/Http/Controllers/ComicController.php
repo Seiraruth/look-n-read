@@ -19,9 +19,9 @@ class ComicController extends Controller
         // Search by title or author
         if ($request->has('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('author', 'like', "%{$search}%");
+                    ->orWhere('author', 'like', "%{$search}%");
             });
         }
 
@@ -134,16 +134,16 @@ class ComicController extends Controller
     /**
      * Remove the specified comic.
      */
-    public function destroy($id)
+    public function destroy(Comic $comic)
     {
-        $comic = Comic::findOrFail($id);
+        // $comic = Comic::findOrFail($comic);
 
         // Delete cover image
         if ($comic->cover_image && Storage::disk('public')->exists($comic->cover_image)) {
             Storage::disk('public')->delete($comic->cover_image);
         }
 
-        $comic->delete();
+        $comic->forceDelete();
 
         return response()->json([
             'message' => 'Comic deleted successfully'

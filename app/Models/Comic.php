@@ -21,11 +21,24 @@ class Comic extends Model
         'cover_image',
     ];
 
+    protected $appends = ["image_url"];
+
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
+
+    public function getImageUrlAttribute()
+    {
+        // if has cover_image in database, merge with url domain
+        if ($this->cover_image) {
+            return url('storage/', $this->cover_image);
+        }
+
+        // if not have the cover_image in database, you can return null or default cover
+        return null;
+    }
 
     // Automatically generate slug from title
     protected static function boot()

@@ -10,6 +10,7 @@ import AdminAuth from "./pages/auth/AdminAuth";
 import HomePage from "./pages/guest/HomePage";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import FormEditComic from "./pages/admin/FormEditComic";
 
 function App() {
     return (
@@ -41,6 +42,15 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <FormAddComic />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="admin/edit/{:id}"
+                        element={
+                            <ProtectedRoute>
+                                <FormEditComic />
                             </ProtectedRoute>
                         }
                     />
