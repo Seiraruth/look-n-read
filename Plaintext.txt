@@ -1,5 +1,5 @@
 📂 1. Structure Backend (Laravel)
-Area kerja Tim Backend (Orang 1 & 2)
+Area kerja Tim Backend (Orang 1,2,3)
 
 Fokus utama di sini adalah memisahkan logika Admin (yang butuh login) dan Guest (pengunjung biasa).
 
