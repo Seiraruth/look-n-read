@@ -24,6 +24,7 @@ import AdminLayout from "@/components/layouts/admin/AdminLayout";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { ComicsType } from "@/types/index.type";
+import { getApi } from "@/services/api";
 
 const Dashboard = () => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -47,18 +48,13 @@ const Dashboard = () => {
         }
     };
 
-    const fetchData = useCallback(async () => {
-        try {
-            const response = await axios.get("/api/auth/admin/comics");
-            setComics(response.data.data);
-        } catch (error) {
-            console.log(error);
-        }
-    }, [setComics]);
-
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        const load = async () => {
+            const response = await getApi("auth/admin/comics");
+            setComics(response?.data.data);
+        };
+        load();
+    }, []);
 
     return (
         <AdminLayout>
@@ -216,7 +212,11 @@ const Dashboard = () => {
                                                                             "outline"
                                                                         }
                                                                     >
-                                                                        Chapters
+                                                                        <Link
+                                                                            to={`/admin/chapters/${comic.id}`}
+                                                                        >
+                                                                            Chapters
+                                                                        </Link>
                                                                     </Button>
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem className="cursor-pointer">
