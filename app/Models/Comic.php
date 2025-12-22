@@ -40,6 +40,11 @@ class Comic extends Model
         return null;
     }
 
+    public function chapters()
+    {
+        return $this->hasMany(Chapter::class);
+    }
+
     // Automatically generate slug from title
     protected static function boot()
     {
