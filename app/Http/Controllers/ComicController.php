@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comic;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -74,10 +76,28 @@ class ComicController extends Controller
     /**
      * Display the specified comic.
      */
-    public function show(Comic $comic)
+    public function show($id): JsonResponse
     {
-        // $comic = Comic::findOrFail($id);
-        return response()->json($comic);
+        try {
+            $comic = Comic::find($id);
+
+            if (!$comic)
+                return response()->json(['msg' => 'Gak ketemu'], 404);
+
+            // Bagian yang bikin error
+            $comic->load('chapters');
+
+            return response()->json($comic);
+
+        } catch (\Exception $e) {
+            // INI AKAN MENAMPILKAN PENYEBAB ASLINYA
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(), // Baca pesan ini!
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
+        }
     }
 
     /**

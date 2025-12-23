@@ -31,7 +31,7 @@ export function FileUploadDemo({ value, onChange }: FileUploadDemoTypes) {
 
     return (
         <FileUpload
-            maxFiles={2}
+            maxFiles={100}
             maxSize={5 * 1024 * 1024}
             className="w-full max-w-full mt-3"
             value={value}

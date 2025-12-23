@@ -44,6 +44,7 @@ const formAddComicSchema = z.object({
 });
 
 const FormAddComic = () => {
+    const token = localStorage.getItem("token");
     const navigate = useNavigate();
     const form = useForm<z.infer<typeof formAddComicSchema>>({
         resolver: zodResolver(formAddComicSchema),
@@ -78,19 +79,13 @@ const FormAddComic = () => {
                 {
                     headers: {
                         "Content-Type": "multipart/form-data",
+                        Authorization: `Bearer ${token}`,
                     },
                 }
             );
             toast.success(response.data.message, {
                 position: "top-center",
                 duration: 1500,
-                style: {
-                    "--normal-bg":
-                        "light-dark(var(--color-green-600), var(--color-green-400))",
-                    "--normal-text": "var(--color-white)",
-                    "--normal-border":
-                        "light-dark(var(--color-green-600), var(--color-green-400))",
-                } as React.CSSProperties,
             });
             console.log("Success: ", response.data);
             form.reset();

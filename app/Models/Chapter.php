@@ -4,45 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
 
 class Chapter extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
-    protected $fillable = [
-        'comic_id',
-        'title',
-        'slug',
-        'number',
-        'is_published',
-        'published_at',
-    ];
+    protected $table = 'chapters';
+    protected $guarded = ['id'];
 
+    // Casting tipe data biar akurat
     protected $casts = [
-        'is_published' => 'boolean',
         'published_at' => 'datetime',
+        'number' => 'float', // Biar chapter 10.5 gak dianggap string
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($chapter) {
-            if (empty($chapter->slug)) {
-                $chapter->slug = Str::slug($chapter->title);
-            }
-        });
-    }
-
+    /**
+     * RELASI: Chapter belongs to Comic
+     */
     public function comic()
     {
-        return $this->belongsTo(Comic::class);
+        return $this->belongsTo(Comic::class, 'comic_id', 'id');
     }
 
+    /**
+     * RELASI: Chapter has Many Images (Halaman)
+     * (Nanti kalau kamu sudah buat model ChapterImage)
+     */
     public function images()
     {
-        return $this->hasMany(ChapterImage::class);
+        // Urutkan berdasarkan nomor halaman (page_number) biar bacanya gak loncat
+        return $this->hasMany(ChapterImage::class)->orderBy('page_number', 'asc');
     }
 }

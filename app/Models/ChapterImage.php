@@ -9,11 +9,15 @@ class ChapterImage extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'chapter_id',
-        'page',
-        'image_path',
-    ];
+    protected $guarded = ['id'];
+
+    // Accessor: Biar frontend langsung dapet URL lengkap (http://...)
+    protected $appends = ['url'];
+
+    public function getUrlAttribute()
+    {
+        return url('storage/' . $this->image_path);
+    }
 
     public function chapter()
     {

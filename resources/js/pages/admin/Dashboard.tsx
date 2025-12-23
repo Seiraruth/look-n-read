@@ -50,7 +50,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         const load = async () => {
-            const response = await getApi("auth/admin/comics");
+            const response = await getApi("comics");
             setComics(response?.data.data);
         };
         load();

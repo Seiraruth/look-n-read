@@ -31,6 +31,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
+import { getApi } from "@/services/api";
 
 const formAddComicSchema = z.object({
     title: z.string().min(1, { message: "Title is required" }),
@@ -69,15 +70,16 @@ const FormEditComic = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const response = await axios.get(`/api/auth/admin/comics/${id}`);
-            setComic(response.data);
+            const response = await axios.get(`/api/comics/${id}`)
+            setComic(response?.data);
+            console.log(response?.data);
             form.reset({
-                title: response.data.title,
-                slug: response.data.slug,
-                author: response.data.author,
-                status: response.data.status,
-                type: response.data.type,
-                synopsis: response.data.synopsis,
+                title: response?.data.title,
+                slug: response?.data.slug,
+                author: response?.data.author,
+                status: response?.data.status,
+                type: response?.data.type,
+                synopsis: response?.data.synopsis,
                 cover: [],
             });
         } catch (error) {

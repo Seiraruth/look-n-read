@@ -52,7 +52,7 @@ function App() {
 
                     {/* Route Edit Form Admin */}
                     <Route
-                        path="admin/edit/:id"
+                        path="/admin/edit/:id"
                         element={
                             <ProtectedRoute>
                                 <FormEditComic />

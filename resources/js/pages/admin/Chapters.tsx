@@ -10,45 +10,43 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit, Plus } from "lucide-react"; // Icon dari lucide-react
 import AdminLayout from "@/components/layouts/admin/AdminLayout";
-import { useCallback, useEffect, useState } from "react";
-import { getApi } from "@/services/api";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export type TChapters = {
     title: string;
+    chapters: [
+        {
+            id: number;
+            comic_id: number;
+            title: string;
+            slug: string;
+            number: number;
+            created_at: string;
+            updated_at: string;
+            published_at: string;
+        }
+    ];
 };
 
 export default function Chapters() {
     // Anggap 'comic.chapters' adalah data yang didapat dari API Laravel
     const { id } = useParams();
     const [comic, setComic] = useState<TChapters>();
-    const [chapters, setChapters] = useState();
-
-    const fetchData = useCallback(async () => {
-        try {
-            const response = await getApi(`auth/admin/comics/${id}`);
-            setComic(response?.data);
-        } catch (error) {
-            console.log(error);
-        }
-    }, [setComic]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
 
     useEffect(() => {
         const load = async () => {
             try {
-                const response = await getApi(
-                    `auth/admin/comics/${id}/chapters`
-                );
-                console.log(response);
+                const response = await axios.get(`/api/comics/${id}`);
+                setComic(response.data);
             } catch (error) {
-                console.error(error);
+                console.error("Chapter.tsx error: ", error);
             }
         };
         load();
     }, []);
+
+    console.log(comic);
 
     return (
         <AdminLayout>
@@ -85,33 +83,44 @@ export default function Chapters() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow>
-                                <TableCell className="font-medium">
-                                    Chapter
-                                </TableCell>
-                                <TableCell>
-                                    8
-                                    {/* Tampilkan strip jika tidak ada judul */}
-                                </TableCell>
-                                <TableCell>
-                                    {/* Kamu bisa hitung jumlah gambar dari relasi chapter_images */}
-                                    Halaman
-                                </TableCell>
-                                <TableCell>
-                                    {new Date().toLocaleDateString("id-ID")}
-                                </TableCell>
-                                <TableCell className="text-right space-x-2">
-                                    {/* Tombol Edit */}
-                                    <Button variant="outline" size="icon">
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
+                            {comic?.chapters.map((item, index) => (
+                                <TableRow key={item.id}>
+                                    <TableCell className="font-medium">
+                                        {index + 1}
+                                    </TableCell>
+                                    <TableCell>
+                                        {item.title}
+                                        {/* Tampilkan strip jika tidak ada judul */}
+                                    </TableCell>
+                                    <TableCell>
+                                        {/* Kamu bisa hitung jumlah gambar dari relasi chapter_images */}
+                                        {comic.chapters.length} Hal
+                                    </TableCell>
+                                    <TableCell>
+                                        {new Date(
+                                            item.created_at
+                                        ).toLocaleDateString("en-EN", {
+                                            day: "2-digit",
+                                            month: "2-digit",
+                                            year: "numeric",
+                                        })}
+                                    </TableCell>
+                                    <TableCell className="text-right space-x-2">
+                                        {/* Tombol Edit */}
+                                        <Button variant="outline" size="icon">
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
 
-                                    {/* Tombol Delete */}
-                                    <Button variant="destructive" size="icon">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
+                                        {/* Tombol Delete */}
+                                        <Button
+                                            variant="destructive"
+                                            size="icon"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                         </TableBody>
                     </Table>
                 </div>
