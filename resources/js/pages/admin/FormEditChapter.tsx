@@ -19,7 +19,7 @@ import axios, { AxiosError } from "axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getApi } from "@/services/api";
 
 // Schema Validation
@@ -34,23 +34,23 @@ const formAddComicSchema = z.object({
         .or(z.literal("")), // Allow empty string agar optional bekerja saat coerce
     // Gunakan coerce agar input string angka ("10") otomatis jadi number (10)
     chapNum: z.coerce.number().min(0.1, { message: "Number is required" }),
-    pages: z
-        .array(z.instanceof(File))
-        .min(1, { message: "Minimum upload 1 image per page" }),
+    pages: z.array(z.instanceof(File)).optional(),
 });
 
 // Type Inference (Opsional, buat bantuan autocomplete kalau butuh)
 type FormSchema = z.infer<typeof formAddComicSchema>;
 
-const FormAddChapter = () => {
+interface IComic {
+    title?: string;
+}
+
+const FormEditChapter = () => {
+    const { slug, id } = useParams();
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
-    const { slug, id } = useParams();
-    const [comicName, setComicName] = useState<string>();
+    const [comic, setComic] = useState<IComic>();
     const [isLoading, setIsLoading] = useState(false);
 
-    // 1. SOLUSI TS ERROR: Hapus <FormSchema> generic.
-    // Biarkan useForm meng-infer tipe langsung dari resolver.
     const form = useForm({
         resolver: zodResolver(formAddComicSchema),
         defaultValues: {
@@ -62,12 +62,11 @@ const FormAddChapter = () => {
         },
     });
 
-    const handleAddComic = async (values: FormSchema) => {
+    const handleUpdateChapter = async (values: FormSchema) => {
         setIsLoading(true);
         const formData = new FormData();
 
-        // Mapping data ke FormData sesuai permintaan Backend Laravel
-        // Pastikan 'id' ada, kalau tidak ambil dari values (yang sudah di-set di useEffect)
+        formData.append("_method", "PUT");
         formData.append("comic_id", values.comic_id.toString());
         formData.append("number", values.chapNum.toString());
 
@@ -75,13 +74,15 @@ const FormAddChapter = () => {
         if (values.slug) formData.append("slug", values.slug);
 
         // Loop array pages[]
-        values.pages.forEach((file) => {
-            formData.append("pages[]", file);
-        });
+        if (values.pages && values.pages.length > 0) {
+            values.pages.forEach((file) => {
+                formData.append("pages[]", file);
+            });
+        }
 
         try {
             const response = await axios.post(
-                "/api/auth/admin/chapters",
+                `/api/auth/admin/chapters/${id}`,
                 formData,
                 {
                     headers: {
@@ -92,6 +93,7 @@ const FormAddChapter = () => {
             );
             toast.success("Chapter uploaded successfully!");
             console.log("Success: ", response.data);
+            fetchData();
             form.reset();
             navigate(`/admin/comics/${slug}`);
         } catch (error) {
@@ -107,24 +109,31 @@ const FormAddChapter = () => {
         }
     };
 
+    const fetchData = useCallback(async () => {
+        if (!id) return;
+        // 2. Set comic_id ke form state agar tidak bernilai 0 saat submit
+        form.setValue("comic_id", parseInt(id));
+        try {
+            const response = await getApi(`chapters/${id}`);
+            const data = response?.data.data;
+            setComic(data.comic);
+
+            form.reset({
+                comic_id: data.comic_id,
+                chapNum: parseFloat(data.number),
+                title: data.title || "",
+                slug: data.slug || "",
+                pages: [],
+            });
+        } catch (error) {
+            console.error(error);
+            toast.error("Gagal mengambil data chapter");
+        }
+    }, [slug, form]);
     // Load Comic Data & Set Comic ID
     useEffect(() => {
-        const load = async () => {
-            if (!id) return;
-            // 2. Set comic_id ke form state agar tidak bernilai 0 saat submit
-            form.setValue("comic_id", parseInt(id));
-
-            try {
-                const response = await getApi(`comics/${slug}`);
-                // Sesuaikan path data dengan response API kamu (misal: response.data.data.title)
-                setComicName(response?.data.title);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        load();
-    }, [slug, form]);
+        fetchData();
+    }, [fetchData]);
 
     return (
         <AdminLayout>
@@ -138,10 +147,10 @@ const FormAddChapter = () => {
                             </Link>
                             <div className="flex flex-col">
                                 <h1 className="text-primary text-4xl font-bold capitalize">
-                                    Add New Chapter
+                                    Update Chapter
                                 </h1>
                                 <h3 className="text-primary/70 text-xl font-medium capitalize mt-1">
-                                    Comic Name : {comicName || "Loading..."}
+                                    Comic Name : {comic?.title || "Loading..."}
                                 </h3>
                             </div>
                         </div>
@@ -151,7 +160,9 @@ const FormAddChapter = () => {
                             <Form {...form}>
                                 <form
                                     className="flex flex-col w-full space-y-4"
-                                    onSubmit={form.handleSubmit(handleAddComic)}
+                                    onSubmit={form.handleSubmit(
+                                        handleUpdateChapter
+                                    )}
                                 >
                                     {/* HIDDEN INPUT FOR COMIC ID */}
                                     <FormField
@@ -305,4 +316,4 @@ const FormAddChapter = () => {
     );
 };
 
-export default FormAddChapter;
+export default FormEditChapter;

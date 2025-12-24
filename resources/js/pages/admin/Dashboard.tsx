@@ -207,7 +207,7 @@ const Dashboard = () => {
                                                                 <DropdownMenuItem className="cursor-pointer">
                                                                     <Button className="w-full">
                                                                         <Link
-                                                                            to={`/admin/edit/${comic.id}`}
+                                                                            to={`/admin/edit/${comic.slug}`}
                                                                         >
                                                                             Edit
                                                                         </Link>
@@ -221,7 +221,7 @@ const Dashboard = () => {
                                                                         }
                                                                     >
                                                                         <Link
-                                                                            to={`/admin/comics/${comic.id}`}
+                                                                            to={`/admin/comics/${comic.slug}`}
                                                                         >
                                                                             Chapters
                                                                         </Link>

@@ -14,6 +14,7 @@ import FormEditComic from "./pages/admin/FormEditComic";
 import { Toaster } from "./components/ui/sonner";
 import Chapters from "./pages/admin/Chapters";
 import FormAddChapter from "./pages/admin/FormAddChapter";
+import FormEditChapter from "./pages/admin/FormEditChapter";
 
 function App() {
     return (
@@ -52,7 +53,7 @@ function App() {
 
                     {/* Route Edit Form Admin */}
                     <Route
-                        path="/admin/edit/:id"
+                        path="/admin/edit/:slug"
                         element={
                             <ProtectedRoute>
                                 <FormEditComic />
@@ -62,7 +63,7 @@ function App() {
 
                     {/* Route Chapters Admin */}
                     <Route
-                        path="/admin/comics/:id"
+                        path="/admin/comics/:slug"
                         element={
                             <ProtectedRoute>
                                 <Chapters />
@@ -70,11 +71,22 @@ function App() {
                         }
                     />
 
+                    {/* Form Add Chapter Comic */}
                     <Route
-                        path="/admin/comics/:id/chapters"
+                        path="/admin/comics/add/chapter/:slug/:id"
                         element={
                             <ProtectedRoute>
                                 <FormAddChapter />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Form Edit Chapter Comic */}
+                    <Route
+                        path="/admin/comics/edit/chapter/:slug/:id"
+                        element={
+                            <ProtectedRoute>
+                                <FormEditChapter />
                             </ProtectedRoute>
                         }
                     />

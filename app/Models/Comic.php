@@ -6,15 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+// use Illuminate\Support\Facades\Storage; <--- Hapus ini, gak butuh lagi di sini
 
 class Comic extends Model
 {
-    use HasFactory, SoftDeletes; // Pastikan tabel comics punya kolom 'deleted_at'
+    use HasFactory, SoftDeletes;
 
     protected $table = 'comics';
     protected $guarded = ['id'];
-
-    // Menambahkan field 'image_url' ke dalam JSON otomatis
     protected $appends = ['image_url'];
 
     protected $casts = [
@@ -23,48 +22,39 @@ class Comic extends Model
         'deleted_at' => 'datetime',
     ];
 
-    /**
-     * ACCESSOR: Image URL
-     * Mengubah path database (covers/naruto.jpg) jadi URL lengkap (http://.../storage/covers/naruto.jpg)
-     */
+    // Accessor URL Gambar
     public function getImageUrlAttribute()
     {
-        // Sesuaikan 'cover_image' dengan nama kolom di database kamu.
-        // Kalau di database namanya 'image_path', ganti jadi $this->image_path
         if ($this->cover_image) {
             return url('storage/' . $this->cover_image);
         }
-
-        return null; // Return null kalau tidak ada gambar (jangan error)
+        return null;
     }
 
-    /**
-     * RELASI: One Comic has Many Chapters
-     */
+    // Relasi
     public function chapters()
     {
-        // Parameter kedua ('comic_id') adalah nama kolom foreign key di tabel chapters
         return $this->hasMany(Chapter::class, 'comic_id', 'id');
     }
 
-    /**
-     * RELASI: Many-to-Many Genres (Opsional)
-     */
     public function genres()
     {
         return $this->belongsToMany(Genre::class, 'comic_genre');
     }
 
-    /**
-     * BOOT: Auto Generate Slug
-     */
+    // --- BOOT BERSIH ---
     protected static function boot()
     {
         parent::boot();
+
+        // CUMA SISAKAN INI (Auto Slug)
         static::creating(function ($comic) {
             if (empty($comic->slug)) {
                 $comic->slug = Str::slug($comic->title);
             }
         });
+
+        // Logic 'forceDeleting' KITA HAPUS
+        // Karena tugas hapus file sudah diambil alih oleh ComicController (deleteDirectory)
     }
 }

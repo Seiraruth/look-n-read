@@ -12,7 +12,6 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -51,7 +50,7 @@ interface ComicType {
 }
 
 const FormEditComic = () => {
-    const { id } = useParams();
+    const { slug } = useParams();
     const token = localStorage.getItem("token");
     const [comic, setComic] = useState<ComicType>();
     const navigate = useNavigate();
@@ -71,9 +70,8 @@ const FormEditComic = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const response = await axios.get(`/api/comics/${id}`);
+            const response = await axios.get(`/api/comics/${slug}`);
             setComic(response?.data);
-            console.log(response?.data);
             form.reset({
                 title: response?.data.title,
                 slug: response?.data.slug,
@@ -86,14 +84,13 @@ const FormEditComic = () => {
         } catch (error) {
             console.error(error);
         }
-    }, [id, form, setComic]);
+    }, [slug, form, setComic]);
 
     useEffect(() => {
         fetchData();
-        console.log("test");
     }, [fetchData]);
 
-    const handleAddComic = async (
+    const handleUpdateComic = async (
         values: z.infer<typeof formAddComicSchema>
     ) => {
         const formData = new FormData();
@@ -115,7 +112,7 @@ const FormEditComic = () => {
         }
         try {
             const response = await axios.post(
-                `/api/auth/admin/comics/${id}`,
+                `/api/auth/admin/comics/${slug}`,
                 formData,
                 {
                     headers: {
@@ -124,10 +121,7 @@ const FormEditComic = () => {
                     },
                 }
             );
-            toast.success(response.data.message, {
-                position: "top-center",
-                duration: 1500,
-            });
+            toast.success(response.data.message);
             fetchData();
             form.reset();
         } catch (error) {
@@ -156,7 +150,9 @@ const FormEditComic = () => {
                             <Form {...form}>
                                 <form
                                     className="flex flex-col w-full"
-                                    onSubmit={form.handleSubmit(handleAddComic)}
+                                    onSubmit={form.handleSubmit(
+                                        handleUpdateComic
+                                    )}
                                 >
                                     <FormField
                                         control={form.control}

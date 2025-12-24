@@ -89,6 +89,7 @@ const FormAddComic = () => {
             });
             console.log("Success: ", response.data);
             form.reset();
+            navigate("/admin/dashboard");
         } catch (error) {
             const axiosError = error as AxiosError;
             console.error("Error: ", axiosError.response?.data);

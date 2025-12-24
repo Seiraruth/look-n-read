@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -19,7 +18,7 @@ return new class extends Migration
             $table->enum('status', ['ongoing', 'completed'])->default('ongoing');
             $table->enum('type', ['manga', 'manhwa', 'manhua'])->default('manga');
             $table->text('synopsis');
-            $table->string('cover_image');
+            $table->string('cover_image')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

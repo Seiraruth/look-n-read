@@ -16,11 +16,11 @@ use App\Http\Controllers\ChapterController;
 
 // Group Komik
 Route::get('/comics', [ComicController::class, 'index']); // List Komik
-Route::get('/comics/{id}', [ComicController::class, 'show']); // Detail Komik
+Route::get('/comics/{comic:slug}', [ComicController::class, 'show']); // Detail Komik
 
 // Group Chapter
 Route::get('/chapters', [ChapterController::class, 'index']); // List Chapter (opsional)
-Route::get('/chapters/{id}', [ChapterController::class, 'show']); // Detail Chapter (Baca Gambar)
+Route::get('/chapters/{chapter:id}', [ChapterController::class, 'show']); // Detail Chapter (Baca Gambar)
 
 
 /*
@@ -47,17 +47,17 @@ Route::prefix('auth/admin')->group(function () {
         // Create (Upload Komik Baru)
         Route::post('/comics', [ComicController::class, 'store']);
         // Update (Edit Komik)
-        Route::put('/comics/{comic}', [ComicController::class, 'update']);
+        Route::put('/comics/{comic:slug}', [ComicController::class, 'update']);
         // Delete (Hapus Komik)
-        Route::delete('/comics/{comic}', [ComicController::class, 'destroy']);
+        Route::delete('/comics/{comic:id}', [ComicController::class, 'destroy']);
 
         // --- MANAGE CHAPTERS (C.U.D) ---
         // Create (Upload Chapter Baru)
         Route::post('/chapters', [ChapterController::class, 'store']);
         // Update (Edit Chapter)
-        Route::put('/chapters/{chapter}', [ChapterController::class, 'update']);
+        Route::put('/chapters/{chapter:id}', [ChapterController::class, 'update']);
         // Delete (Hapus Chapter)
-        Route::delete('/chapters/{chapter}', [ChapterController::class, 'destroy']);
+        Route::delete('/chapters/{chapter:id}', [ChapterController::class, 'destroy']);
         // Show (Khusus Admin, jika butuh data mentah buat form edit)
         // Route::get('/chapters/{chapter}', [ChapterController::class, 'show']);
     });
