@@ -52,6 +52,7 @@ interface ComicType {
 
 const FormEditComic = () => {
     const { id } = useParams();
+    const token = localStorage.getItem("token");
     const [comic, setComic] = useState<ComicType>();
     const navigate = useNavigate();
 
@@ -70,7 +71,7 @@ const FormEditComic = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const response = await axios.get(`/api/comics/${id}`)
+            const response = await axios.get(`/api/comics/${id}`);
             setComic(response?.data);
             console.log(response?.data);
             form.reset({
@@ -119,6 +120,7 @@ const FormEditComic = () => {
                 {
                     headers: {
                         "Content-Type": "multipart/form-data",
+                        Authorization: `Bearer ${token}`,
                     },
                 }
             );

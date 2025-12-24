@@ -25,6 +25,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { ComicsType } from "@/types/index.type";
 import { getApi } from "@/services/api";
+import { toast } from "sonner";
 
 const Dashboard = () => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -38,13 +39,20 @@ const Dashboard = () => {
     );
 
     const handleDeleteComic = async (id: number) => {
+        const token = localStorage.getItem("token");
         try {
-            await axios.delete(`/api/auth/admin/comics/${id}`);
+            await axios.delete(`/api/auth/admin/comics/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
             setComics((prevComics) =>
                 prevComics.filter((comic) => comic.id !== id)
             );
         } catch (error) {
-            console.log(error);
+            console.error(error);
+            toast.error("Gagal menghapus komik");
         }
     };
 
