@@ -29,6 +29,7 @@ import axios, { AxiosError } from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, X } from "lucide-react";
 import { toast } from "sonner";
+import GenreModalSelector from "@/components/guest-comp/GenreModalSelector";
 
 const formAddComicSchema = z.object({
     title: z.string().min(1, { message: "Title is required" }),
@@ -41,6 +42,7 @@ const formAddComicSchema = z.object({
     type: z.string().min(1, { message: "Type is required" }),
     synopsis: z.string().min(1, { message: "Synopsis is required" }),
     cover: z.array(z.instanceof(File)).min(1, { message: "Cover is required" }),
+    genres: z.array(z.number()).min(1, { message: "Pilih minimal 1 genre" }),
 });
 
 const FormAddComic = () => {
@@ -56,6 +58,7 @@ const FormAddComic = () => {
             type: "",
             synopsis: "",
             cover: [],
+            genres: [],
         },
     });
 
@@ -72,6 +75,9 @@ const FormAddComic = () => {
         values.cover.forEach((file) => {
             formData.append("cover_image", file);
         });
+        values.genres.forEach((genreId) => {
+            formData.append("genres[]", genreId.toString());
+        });
         try {
             const response = await axios.post(
                 "/api/auth/admin/comics",
@@ -83,10 +89,7 @@ const FormAddComic = () => {
                     },
                 }
             );
-            toast.success(response.data.message, {
-                position: "top-center",
-                duration: 1500,
-            });
+            toast.success(response.data.message);
             console.log("Success: ", response.data);
             form.reset();
             navigate("/admin/dashboard");
@@ -267,6 +270,37 @@ const FormAddComic = () => {
                                             </FormItem>
                                         )}
                                     />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="genres"
+                                        render={({ field }) => (
+                                            <FormItem className="mt-5">
+                                                <FormLabel>Genres</FormLabel>
+                                                <FormControl>
+                                                    {/* Komponen Modal Kita */}
+                                                    <GenreModalSelector
+                                                        selectedGenres={
+                                                            field.value
+                                                        } // Kirim value dari form
+                                                        onSave={field.onChange} // Fungsi update form pas tombol Save diklik
+                                                        error={
+                                                            form.formState
+                                                                .errors.genres
+                                                                ?.message
+                                                        } // Kirim error buat styling merah
+                                                    />
+                                                </FormControl>
+                                                <FormDescription>
+                                                    Minimal pilih 1 genre. Klik
+                                                    tombol di atas untuk membuka
+                                                    pilihan.
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
                                     <FormField
                                         control={form.control}
                                         name="cover"

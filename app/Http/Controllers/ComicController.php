@@ -47,7 +47,7 @@ class ComicController extends Controller
     /**
      * Store a newly created comic.
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         // 1. Validasi
         $validated = $request->validate([
@@ -58,34 +58,47 @@ class ComicController extends Controller
             'type' => 'required|in:manga,manhwa,manhua',
             'synopsis' => 'required|string',
             'cover_image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+
+            // --- TAMBAHAN BARU: Validasi Genre ---
+            'genres' => 'required|array', // Harus berupa array (contoh: [1, 3])
+            'genres.*' => 'exists:genres,id', // Pastikan ID-nya valid di tabel genres
         ]);
 
-        // Gunakan Transaction biar aman (kalau upload gagal, data gak masuk DB)
         try {
             DB::beginTransaction();
 
-            // 2. Buat Comic Dulu (Tanpa Gambar Cover)
-            // Kita butuh ID-nya terbentuk dulu supaya bisa bikin nama folder "15-naruto"
-            // Jadi kita buang dulu 'cover_image' dari array data
-            $dataWithoutFile = Arr::except($validated, ['cover_image']);
+            // 2. Persiapan Data
+            // Kita harus buang 'cover_image' DAN 'genres' dari array data.
+            // Kenapa 'genres' dibuang? Karena tabel comics gak punya kolom 'genres'.
+            $dataToCreate = Arr::except($validated, ['cover_image', 'genres']);
 
-            $comic = Comic::create($dataWithoutFile);
+            // --- PENTING: FIX ERROR DATABASE ---
+            // Kita isi 'pending' dulu biar database gak marah (Error 1364)
+            // Nanti di bawah kita timpa dengan path gambar asli.
+            $dataToCreate['cover_image'] = 'pending';
 
-            // 3. Proses Upload Cover
+            // 3. Buat Comic
+            $comic = Comic::create($dataToCreate);
+
+            // 4. SIMPAN RELASI GENRE (Baru!)
+            // Ambil array ID dari request, tempel ke komik yang baru dibuat
+            if ($request->has('genres')) {
+                $comic->genres()->attach($request->genres);
+            }
+
+            // 5. Proses Upload Cover
             if ($request->hasFile('cover_image')) {
-
-                // Sekarang kita udah punya ID ($comic->id)
                 // Nama Folder: comics/15-naruto
                 $folderName = 'comics/' . $comic->id . '-' . $comic->slug;
 
-                // Nama File: cover.jpg (Lebih rapi daripada pakai timestamp panjang)
+                // Nama File: cover.jpg
                 $file = $request->file('cover_image');
                 $filename = 'cover.' . $file->getClientOriginalExtension();
 
                 // Simpan ke storage
                 $path = $file->storeAs($folderName, $filename, 'public');
 
-                // 4. Update Comic dengan Path Gambar yang baru didapat
+                // Update Comic dengan Path Gambar yang Asli
                 $comic->update(['cover_image' => $path]);
             }
 
@@ -93,13 +106,14 @@ class ComicController extends Controller
 
             return response()->json([
                 'message' => 'Comic created successfully',
-                'comic' => $comic
+                // Kita load('genres') supaya frontend langsung dapet data genrenya juga
+                'comic' => $comic->load('genres')
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            // Hapus folder kalau error (biar gak nyampah folder kosong)
+            // Hapus folder kalau error
             if (isset($folderName) && Storage::disk('public')->exists($folderName)) {
                 Storage::disk('public')->deleteDirectory($folderName);
             }
@@ -133,24 +147,12 @@ class ComicController extends Controller
         }
     }
 
-    /**
-     * Display the specified comic by slug.
-     */
-    // public function showBySlug($slug)
-    // {
-    //     $comic = Comic::where('slug', $slug)->firstOrFail();
-    //     return response()->json($comic);
-    // }
-
-    /**
-     * Update the specified comic.
-     */
-    public function update(Request $request, Comic $comic)
+    public function update(Request $request, Comic $comic): JsonResponse
     {
         // Simpan slug lama buat referensi nama folder lama
         $oldSlug = $comic->slug;
 
-        // 1. Validasi
+        // 1. Validasi (Ditambah Validasi Genre)
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
             'slug' => 'sometimes|string|max:255|unique:comics,slug,' . $comic->id,
@@ -159,6 +161,10 @@ class ComicController extends Controller
             'type' => 'sometimes|in:manga,manhwa,manhua',
             'synopsis' => 'sometimes|string',
             'cover_image' => 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048',
+
+            // --- VALIDASI GENRE ---
+            'genres' => 'sometimes|array',
+            'genres.*' => 'exists:genres,id',
         ]);
 
         // 2. Cek Slug Baru
@@ -202,14 +208,23 @@ class ComicController extends Controller
         // PENTING: Jika slug berubah TAPI cover tidak diganti,
         // path cover di database harus diupdate juga karena nama foldernya berubah!
         elseif ($oldSlug !== $newSlug && $comic->cover_image) {
-            // Update string path di database dari '...-naruto/...' jadi '...-naruto-shippuden/...'
             $validated['cover_image'] = str_replace($oldSlug, $newSlug, $comic->cover_image);
         }
 
-        // 4. Update DB
-        $comic->update($validated);
+        // 4. Update DB (Comic Data)
+        // PENTING: Kita harus buang 'genres' dari array validated sebelum update ke tabel comics
+        // Karena tabel comics tidak punya kolom 'genres'.
+        $comicData = \Illuminate\Support\Arr::except($validated, ['genres']);
 
-        // Jangan lupa update path gambar di semua chapter (karena folder induknya ganti nama)
+        $comic->update($comicData);
+
+        // 5. SYNC GENRES (Relasi Many-to-Many)
+        // Ini akan otomatis hapus relasi lama dan ganti dengan yang baru
+        if ($request->has('genres')) {
+            $comic->genres()->sync($request->genres);
+        }
+
+        // 6. Update Path Gambar Chapter (Jika Folder Berubah)
         if ($oldSlug !== $newSlug) {
             foreach ($comic->chapters as $chap) {
                 foreach ($chap->images as $img) {
@@ -221,7 +236,8 @@ class ComicController extends Controller
 
         return response()->json([
             'message' => 'Comic updated successfully',
-            'comic' => $comic
+            // Load genres biar data balikan ke frontend lengkap
+            'comic' => $comic->load('genres')
         ]);
     }
 
