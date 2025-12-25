@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ComicController;
 use App\Http\Controllers\ChapterController;
+use App\Http\Controllers\GenreController;
 use App\Http\Controllers\PublicComicController;
 
 /*
@@ -25,6 +26,8 @@ Route::get('/chapters/{chapter:id}', [ChapterController::class, 'show']); // Det
 
 Route::get('/read/{comic:slug}/{chapter:number}', [PublicComicController::class, 'read']);
 
+Route::get('/genres', [GenreController::class, 'index']); // Public (biar guest bisa filter)
+
 /*
 |--------------------------------------------------------------------------
 | 2. ADMIN ROUTES (PROTECTED / KHUSUS ADMIN)
@@ -37,7 +40,6 @@ Route::prefix('auth/admin')->group(function () {
 
     // A. Login Admin (Pintu Masuk - Tidak butuh token)
     Route::post('/login', [AuthController::class, 'adminLogin']);
-
     // B. Area Terkunci (Wajib Token Sanctum)
     Route::middleware('auth:sanctum')->group(function () {
 
@@ -46,21 +48,18 @@ Route::prefix('auth/admin')->group(function () {
         Route::get('/me', [AuthController::class, 'adminMe']);
 
         // --- MANAGE COMICS (C.U.D) ---
-        // Create (Upload Komik Baru)
         Route::post('/comics', [ComicController::class, 'store']);
-        // Update (Edit Komik)
         Route::put('/comics/{comic:slug}', [ComicController::class, 'update']);
-        // Delete (Hapus Komik)
         Route::delete('/comics/{comic:id}', [ComicController::class, 'destroy']);
 
         // --- MANAGE CHAPTERS (C.U.D) ---
-        // Create (Upload Chapter Baru)
         Route::post('/chapters', [ChapterController::class, 'store']);
-        // Update (Edit Chapter)
         Route::put('/chapters/{chapter:id}', [ChapterController::class, 'update']);
-        // Delete (Hapus Chapter)
         Route::delete('/chapters/{chapter:id}', [ChapterController::class, 'destroy']);
-        // Show (Khusus Admin, jika butuh data mentah buat form edit)
-        // Route::get('/chapters/{chapter}', [ChapterController::class, 'show']);
+
+        // --- MANAGE GENRES (C.U.D) ---
+        Route::post('/genres', [GenreController::class, 'store']);
+        Route::put('/genres/{id}', [GenreController::class, 'update']);
+        Route::delete('/genres/{id}', [GenreController::class, 'destroy']);
     });
 });

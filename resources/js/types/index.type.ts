@@ -44,3 +44,8 @@ export interface IChapter {
     updated_at: Date | string | undefined;
     published_at?: Date | string | null;
 }
+
+export interface IGenre {
+    id: number;
+    name: string;
+}
