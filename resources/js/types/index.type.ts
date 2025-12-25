@@ -33,3 +33,14 @@ export interface IComic {
     updated_at: Date | string;
     deleted_at: Date | string | null;
 }
+
+export interface IChapter {
+    id: number;
+    comic_id?: number;
+    title: string;
+    slug: string;
+    number: string;
+    created_at: Date | string | undefined;
+    updated_at: Date | string | undefined;
+    published_at?: Date | string | null;
+}

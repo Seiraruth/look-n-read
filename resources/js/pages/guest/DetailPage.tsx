@@ -1,19 +1,28 @@
-import GuestLayout from "@/components/layouts/guest/guestLayout";
+import GuestLayout from "@/components/layouts/guest/GuestLayout";
 import Navbar from "@/components/layouts/guest/Navbar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { IComic } from "@/types/index.type";
+import { IChapter, IComic } from "@/types/index.type";
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+interface IComicChapter extends IComic {
+    chapters: IChapter[];
+}
+
 const DetailPage = () => {
     const { slug } = useParams();
-    const [comic, setComic] = useState<IComic>();
+    const [comic, setComic] = useState<IComicChapter>();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const fetchData = useCallback(async () => {
+        setIsLoading(true);
         try {
             const res = await axios.get(`/api/comics/${slug}`);
+            res.data.chapters.sort().reverse();
             setComic(res.data);
         } catch (error) {
             console.error("Chapter.tsx error: ", error);
@@ -22,9 +31,10 @@ const DetailPage = () => {
 
     useEffect(() => {
         fetchData();
+        setTimeout(() => {
+            setIsLoading(false);
+        }, 3000);
     }, [fetchData]);
-
-    console.log(comic);
 
     return (
         <>
@@ -36,11 +46,15 @@ const DetailPage = () => {
                         {/* Left: Image */}
                         <div className="w-1/6">
                             <div className="aspect-[2/3] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all">
-                                <img
-                                    src={comic?.cover_image}
-                                    alt={`Comic ${comic?.title}`}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                />
+                                {isLoading ? (
+                                    <Skeleton className="w-full h-full" />
+                                ) : (
+                                    <img
+                                        src={comic?.cover_image}
+                                        alt={`Comic ${comic?.title}`}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                )}
                             </div>
                         </div>
                         {/* Right: Detail Comic */}
@@ -49,18 +63,32 @@ const DetailPage = () => {
                                 <TableBody className="text-md">
                                     <TableRow>
                                         <TableCell>Judul Komik</TableCell>
-                                        <TableCell>{comic?.title}</TableCell>
+                                        <TableCell>
+                                            {isLoading ? (
+                                                <Skeleton className="h-4 w-2/4" />
+                                            ) : (
+                                                comic?.title
+                                            )}
+                                        </TableCell>
                                     </TableRow>
                                     <TableRow>
                                         <TableCell>Type</TableCell>
                                         <TableCell className="capitalize">
-                                            {comic?.type}
+                                            {isLoading ? (
+                                                <Skeleton className="h-4 w-2/4" />
+                                            ) : (
+                                                comic?.type
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>
                                         <TableCell>Author</TableCell>
                                         <TableCell className="capitalize">
-                                            {comic?.author}
+                                            {isLoading ? (
+                                                <Skeleton className="h-4 w-2/4" />
+                                            ) : (
+                                                comic?.author
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>
@@ -72,7 +100,11 @@ const DetailPage = () => {
                                     <TableRow>
                                         <TableCell>Status</TableCell>
                                         <TableCell className="capitalize">
-                                            {comic?.status}
+                                            {isLoading ? (
+                                                <Skeleton className="h-4 w-2/4" />
+                                            ) : (
+                                                comic?.status
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>
@@ -136,6 +168,59 @@ const DetailPage = () => {
                     </div>
                     {/* End: Synopsis */}
                 </section>
+
+                {/* Start: List Chapter Comic */}
+                <section>
+                    <div>
+                        <h2 className="py-5 font-semibold text-lg">
+                            Chapter: {comic?.title}
+                        </h2>
+                        {/* Start: Chapter Button */}
+                        <div className="grid grid-cols-4 gap-5">
+                            {comic?.chapters.length ? (
+                                <>
+                                    {comic?.chapters.map((chap) => (
+                                        <Button
+                                            key={chap.id}
+                                            variant={"outline"}
+                                            className="hover:bg-primary hover:text-background h-auto flex justify-start"
+                                        >
+                                            <div className="flex flex-col items-start">
+                                                <span className="text-lg font-semibold">
+                                                    {chap.title}
+                                                </span>
+                                                <span className="text-sm font-light">
+                                                    {chap.created_at &&
+                                                        new Date(
+                                                            chap.created_at
+                                                        ).toLocaleString(
+                                                            "en-EN",
+                                                            {
+                                                                day: "numeric",
+                                                                month: "numeric",
+                                                                year: "numeric",
+                                                                hour: "numeric",
+                                                                minute: "numeric",
+                                                            }
+                                                        )}
+                                                </span>
+                                            </div>
+                                        </Button>
+                                    ))}
+                                </>
+                            ) : (
+                                <Button
+                                    variant={"outline"}
+                                    className="hover:bg-primary hover:text-background h-auto"
+                                >
+                                    No Chapter -_-
+                                </Button>
+                            )}
+                        </div>
+                        {/* End: Chapter Button */}
+                    </div>
+                </section>
+                {/* End: List Chapter Comic */}
             </GuestLayout>
         </>
     );
