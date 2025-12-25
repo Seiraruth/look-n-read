@@ -1,4 +1,6 @@
-import GuestLayout from "@/components/layouts/guest/guestLayout";
+import GuestLayout from "@/components/layouts/guest/GuestLayout";
+import Navbar from "@/components/layouts/guest/Navbar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { IComic } from "@/types/index.type";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
@@ -8,6 +10,7 @@ document.title = "Homepage";
 
 export default function HomePage() {
     const [comics, setComics] = useState<IComic[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const comicTypes = [
         { name: "Manga", count: 150, seed: "manga" },
@@ -16,6 +19,7 @@ export default function HomePage() {
     ];
 
     useEffect(() => {
+        setIsLoading(true);
         const load = async () => {
             try {
                 const res = await axios.get("/api/comics");
@@ -25,12 +29,14 @@ export default function HomePage() {
             }
         };
         load();
+        setTimeout(() => {
+            setIsLoading(false);
+        }, 3000);
     }, []);
-
-    console.log(comics);
 
     return (
         <>
+            <Navbar />
             {/* Main Content */}
             <GuestLayout>
                 {/* Type Categories */}
@@ -72,7 +78,7 @@ export default function HomePage() {
                         Latest Updates
                     </h2>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {comics.length > 0 &&
+                        {comics.length > 0 ? (
                             comics.map((i) => (
                                 <div
                                     key={i.id}
@@ -80,23 +86,41 @@ export default function HomePage() {
                                 >
                                     <Link to={`/${i.slug}`}>
                                         <div className="aspect-[2/3] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all">
-                                            <img
-                                                src={i.cover_image}
-                                                alt={`Comic ${i.title}`}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                            />
+                                            {isLoading ? (
+                                                <Skeleton className="w-full h-full" />
+                                            ) : (
+                                                <img
+                                                    src={i.cover_image}
+                                                    alt={`Comic ${i.title}`}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                />
+                                            )}
                                         </div>
                                     </Link>
-                                    <div className="mt-2">
-                                        <h3 className="text-sm font-medium text-gray-300 truncate group-hover:text-purple-400 transition-colors">
-                                            {i.title}
-                                        </h3>
-                                        <p className="text-xs text-gray-600">
-                                            Chapter
-                                        </p>
-                                    </div>
+                                    {isLoading ? (
+                                        <div className="mt-2">
+                                            <Skeleton className="h-4 w-full" />
+                                            <Skeleton className="h-4 w-1/4 mt-1" />
+                                        </div>
+                                    ) : (
+                                        <div className="mt-2">
+                                            <h3 className="text-sm font-medium text-gray-300 truncate group-hover:text-purple-400 transition-colors">
+                                                {i.title}
+                                            </h3>
+                                            <p className="text-xs text-gray-600">
+                                                Chapter
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
-                            ))}
+                            ))
+                        ) : (
+                            <div className="col-span-4">
+                                <p className="text-destructive font-bold text-5xl italic">
+                                    Comic Not Found 😱
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </GuestLayout>
