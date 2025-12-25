@@ -16,6 +16,7 @@ import Chapters from "./pages/admin/Chapters";
 import FormAddChapter from "./pages/admin/FormAddChapter";
 import FormEditChapter from "./pages/admin/FormEditChapter";
 import DetailPage from "./pages/guest/DetailPage";
+import ReadChapter from "./pages/guest/ReadChapter";
 
 function App() {
     return (
@@ -93,6 +94,11 @@ function App() {
                     />
 
                     <Route path="/:slug" element={<DetailPage />} />
+
+                    <Route
+                        path="/read/:slug/:chapterNumber"
+                        element={<ReadChapter />}
+                    />
 
                     {/* Fallback */}
                     <Route path="*" element={<NotFound />} />

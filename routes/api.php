@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ComicController;
 use App\Http\Controllers\ChapterController;
+use App\Http\Controllers\PublicComicController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,7 @@ Route::get('/comics/{comic:slug}', [ComicController::class, 'show']); // Detail 
 Route::get('/chapters', [ChapterController::class, 'index']); // List Chapter (opsional)
 Route::get('/chapters/{chapter:id}', [ChapterController::class, 'show']); // Detail Chapter (Baca Gambar)
 
+Route::get('/read/{comic:slug}/{chapter:number}', [PublicComicController::class, 'read']);
 
 /*
 |--------------------------------------------------------------------------

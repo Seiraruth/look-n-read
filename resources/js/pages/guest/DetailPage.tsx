@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { IChapter, IComic } from "@/types/index.type";
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 interface IComicChapter extends IComic {
     chapters: IChapter[];
@@ -176,44 +176,54 @@ const DetailPage = () => {
                             Chapter: {comic?.title}
                         </h2>
                         {/* Start: Chapter Button */}
-                        <div className="grid grid-cols-4 gap-5">
+                        <div className="grid grid-cols-5 gap-5">
                             {comic?.chapters.length ? (
                                 <>
                                     {comic?.chapters.map((chap) => (
-                                        <Button
-                                            key={chap.id}
-                                            variant={"outline"}
-                                            className="hover:bg-primary hover:text-background h-auto flex justify-start"
-                                        >
-                                            <div className="flex flex-col items-start">
-                                                <span className="text-lg font-semibold">
-                                                    {chap.title}
-                                                </span>
-                                                <span className="text-sm font-light">
-                                                    {chap.created_at &&
-                                                        new Date(
-                                                            chap.created_at
-                                                        ).toLocaleString(
-                                                            "en-EN",
-                                                            {
-                                                                day: "numeric",
-                                                                month: "numeric",
-                                                                year: "numeric",
-                                                                hour: "numeric",
-                                                                minute: "numeric",
-                                                            }
-                                                        )}
-                                                </span>
-                                            </div>
-                                        </Button>
+                                        <>
+                                            {isLoading ? (
+                                                <Skeleton className="h-16 w-full" />
+                                            ) : (
+                                                <Button
+                                                    key={chap.id}
+                                                    variant={"outline"}
+                                                    className="hover:bg-primary hover:text-background h-auto flex justify-start"
+                                                >
+                                                    <Link
+                                                        to={`/read/${comic.slug}/${chap.number}`}
+                                                    >
+                                                        <div className="flex flex-col items-start">
+                                                            <span className="text-lg font-semibold">
+                                                                {chap.title}
+                                                            </span>
+                                                            <span className="text-sm font-light">
+                                                                {chap.created_at &&
+                                                                    new Date(
+                                                                        chap.created_at
+                                                                    ).toLocaleString(
+                                                                        "en-EN",
+                                                                        {
+                                                                            day: "numeric",
+                                                                            month: "numeric",
+                                                                            year: "numeric",
+                                                                            hour: "numeric",
+                                                                            minute: "numeric",
+                                                                        }
+                                                                    )}
+                                                            </span>
+                                                        </div>
+                                                    </Link>
+                                                </Button>
+                                            )}
+                                        </>
                                     ))}
                                 </>
                             ) : (
                                 <Button
                                     variant={"outline"}
-                                    className="hover:bg-primary hover:text-background h-auto"
+                                    className="hover:bg-primary hover:text-background h-auto text-destructive italic col-span-5"
                                 >
-                                    No Chapter -_-
+                                    No Chapter 😑
                                 </Button>
                             )}
                         </div>
