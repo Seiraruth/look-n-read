@@ -54,6 +54,33 @@ class ComicController extends Controller
     }
 
     /**
+     * Get comics statistics by type.
+     */
+    public function stats(): JsonResponse
+    {
+        try {
+            $stats = [
+                'manga' => Comic::where('type', 'manga')->count(),
+                'manhwa' => Comic::where('type', 'manhwa')->count(),
+                'manhua' => Comic::where('type', 'manhua')->count(),
+            ];
+
+            return response()->json([
+                'data' => $stats
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching comics stats: ' . $e->getMessage());
+            return response()->json([
+                'data' => [
+                    'manga' => 0,
+                    'manhwa' => 0,
+                    'manhua' => 0,
+                ]
+            ], 500);
+        }
+    }
+
+    /**
      * Store a newly created comic.
      */
     public function store(Request $request): JsonResponse
@@ -66,7 +93,7 @@ class ComicController extends Controller
             'status' => 'required|in:ongoing,completed',
             'type' => 'required|in:manga,manhwa,manhua',
             'synopsis' => 'required|string',
-            'cover_image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'cover_image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // Increased to 5MB
 
             // --- TAMBAHAN BARU: Validasi Genre ---
             'genres' => 'required|array', // Harus berupa array (contoh: [1, 3])
@@ -131,6 +158,9 @@ class ComicController extends Controller
         }
     }
 
+    /**
+     * Display the specified comic.
+     */
     /**
      * Display the specified comic.
      */

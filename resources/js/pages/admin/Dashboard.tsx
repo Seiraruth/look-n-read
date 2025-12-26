@@ -58,8 +58,19 @@ const Dashboard = () => {
 
     useEffect(() => {
         const load = async () => {
-            const response = await getApi("comics");
-            setComics(response?.data.data);
+            const token = localStorage.getItem("token");
+            try {
+                const response = await axios.get("/api/auth/admin/comics", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                setComics(response?.data?.data || []);
+            } catch (error) {
+                console.error("Error loading comics:", error);
+                setComics([]);
+                toast.error("Failed to load comics");
+            }
         };
         load();
     }, []);

@@ -20,14 +20,35 @@ const DetailPage = () => {
     const [comic, setComic] = useState<IComicChapter>();
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    // Helper function to get proper image URL
+    const getImageUrl = (imagePath: string | undefined) => {
+        if (!imagePath) return undefined;
+        // If it already starts with http/https, return as-is
+        if (imagePath.startsWith('http')) return imagePath;
+        // If it starts with storage/, return as-is 
+        if (imagePath.startsWith('storage/')) return `/${imagePath}`;
+        // Otherwise, prepend /storage/
+        return `/storage/${imagePath}`;
+    };
+
     const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
             const res = await axios.get(`/api/comics/${slug}`);
-            res.data.chapters.sort().reverse();
-            setComic(res.data);
+            if (res.data) {
+                // Safely handle chapters sorting
+                if (res.data.chapters && Array.isArray(res.data.chapters)) {
+                    res.data.chapters.sort().reverse();
+                }
+                setComic(res.data);
+            }
         } catch (error) {
-            console.error("Chapter.tsx error: ", error);
+            console.error("DetailPage fetch error: ", error);
+            // Don't set comic to avoid type issues, let it remain undefined
+        } finally {
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 1500);
         }
     }, [slug]);
 
@@ -54,9 +75,13 @@ const DetailPage = () => {
                                     <Skeleton className="w-full h-full" />
                                 ) : (
                                     <img
-                                        src={comic?.cover_image}
+                                        src={getImageUrl(comic?.cover_image) || `https://picsum.photos/seed/${comic?.slug}/200/300`}
                                         alt={`Comic ${comic?.title}`}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.src = `https://picsum.photos/seed/${comic?.slug}/200/300`;
+                                        }}
                                     />
                                 )}
                             </div>
