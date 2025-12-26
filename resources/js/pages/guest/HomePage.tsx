@@ -1,15 +1,23 @@
 import GuestLayout from "@/components/layouts/guest/GuestLayout";
 import Navbar from "@/components/layouts/guest/Navbar";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { IComic } from "@/types/index.type";
+import { IChapter, IComic, IGenre } from "@/types/index.type";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { formatDistance } from "date-fns";
+import { id } from "date-fns/locale/id";
 
 document.title = "Homepage";
 
+interface IComicChapter extends IComic {
+    chapters: IChapter[];
+    genres: IGenre[];
+}
+
 export default function HomePage() {
-    const [comics, setComics] = useState<IComic[]>([]);
+    const [comics, setComics] = useState<IComicChapter[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const comicTypes = [
@@ -33,6 +41,8 @@ export default function HomePage() {
             setIsLoading(false);
         }, 3000);
     }, []);
+
+    // console.log(comics);
 
     return (
         <>
@@ -107,9 +117,40 @@ export default function HomePage() {
                                             <h3 className="text-sm font-medium text-gray-300 truncate group-hover:text-purple-400 transition-colors">
                                                 {i.title}
                                             </h3>
-                                            <p className="text-xs text-gray-600">
-                                                Chapter
-                                            </p>
+                                            <Link
+                                                to={`/read/${i.slug}/${
+                                                    i.chapters.at(-1)?.number
+                                                }`}
+                                            >
+                                                <Button
+                                                    variant={"outline"}
+                                                    className="text-xs text-gray-600 w-full mt-3 flex justify-between"
+                                                >
+                                                    <span>
+                                                        {
+                                                            i.chapters.at(-1)
+                                                                ?.title
+                                                        }
+                                                    </span>
+                                                    <span>
+                                                        {formatDistance(
+                                                            new Date(
+                                                                String(
+                                                                    i.chapters.at(
+                                                                        -1
+                                                                    )
+                                                                        ?.created_at
+                                                                )
+                                                            ),
+                                                            new Date(),
+                                                            {
+                                                                addSuffix: true,
+                                                                locale: id,
+                                                            }
+                                                        )}
+                                                    </span>
+                                                </Button>
+                                            </Link>
                                         </div>
                                     )}
                                 </div>

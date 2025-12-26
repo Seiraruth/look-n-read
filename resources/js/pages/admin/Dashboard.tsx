@@ -32,8 +32,8 @@ const Dashboard = () => {
     const [comics, setComics] = useState<ComicsType[]>([]);
 
     const itemsPerPage = 6;
-    const totalPages = Math.ceil(comics.length / itemsPerPage);
-    const currentComics = comics.slice(
+    const totalPages = Math.ceil(comics?.length / itemsPerPage);
+    const currentComics = comics?.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -131,7 +131,7 @@ const Dashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {currentComics.length ? (
+                                    {currentComics?.length ? (
                                         <>
                                             {currentComics.map((comic) => (
                                                 <tr
@@ -262,7 +262,7 @@ const Dashboard = () => {
                         </div>
 
                         {/* Pagination */}
-                        {currentComics.length > 0 && (
+                        {currentComics?.length > 0 && (
                             <div className="flex items-center justify-between p-4 border-t border-border">
                                 <div className="text-sm text-muted-foreground">
                                     Showing{" "}

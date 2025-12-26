@@ -19,7 +19,7 @@ class ComicController extends Controller
     public function index(Request $request): JsonResponse
     {
         // 1. PENTING: Tambahkan with('genres') biar datanya ke-load
-        $query = Comic::with('genres');
+        $query = Comic::with(['genres', 'chapters']);
 
         // Search by title or author
         if ($request->has('search')) {

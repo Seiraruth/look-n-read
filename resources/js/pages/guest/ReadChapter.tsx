@@ -1,87 +1,198 @@
 import GuestLayout from "@/components/layouts/guest/GuestLayout";
-import { getApi } from "@/services/api";
+import { IChapter } from "@/types/index.type"; // Pastikan import IChapter benar
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
-// 1. Definisikan Tipe Data Image & Chapter
+// Tipe data untuk Detail Chapter yang sedang dibaca
 type TChapterImage = {
     id: number;
     image_path: string;
     page_number: number;
-    url: string; // Pastikan di Model Laravel ada appends ['url']
+    url: string;
 };
 
 type TChapterDetail = {
     id: number;
     title: string;
-    number: string; // atau number
+    number: string; // String karena bisa "10.5"
     comic_id: number;
-    images: TChapterImage[]; // Array gambar
+    images: TChapterImage[];
 };
 
 const ReadChapter = () => {
-    // Ambil slug dan chapterNumber dari URL (misal: /read/naruto/1)
     const { slug, chapterNumber } = useParams();
 
-    const [chapter, setChapter] = useState<TChapterDetail | null>(null);
+    // State untuk chapter yang SEDANG DIBACA
+    const [currentChapter, setCurrentChapter] = useState<TChapterDetail | null>(
+        null
+    );
+
+    // State untuk DAFTAR SEMUA CHAPTER (untuk navigasi)
+    const [chapterList, setChapterList] = useState<IChapter[]>([]);
+
     const [loading, setLoading] = useState(true);
 
+    // 1. Load Data Chapter yang sedang dibuka (Images)
     useEffect(() => {
-        const load = async () => {
+        const loadChapterData = async () => {
+            setLoading(true);
             try {
-                // Panggil API Laravel yang tadi kita buat
                 const res = await axios.get(
                     `/api/read/${slug}/${chapterNumber}`
                 );
-                console.log("res", res?.data.data);
-                setChapter(res?.data.data);
+                setCurrentChapter(res?.data.data);
             } catch (error) {
                 console.error("Gagal load chapter:", error);
             } finally {
                 setLoading(false);
             }
         };
-        load();
+        loadChapterData();
     }, [slug, chapterNumber]);
 
+    // 2. Load Daftar Semua Chapter (untuk logika Next/Prev)
+    const fetchChapterList = useCallback(async () => {
+        try {
+            const res = await axios.get(`/api/comics/${slug}`);
+            // Asumsi response-nya: res.data.chapters adalah array of chapters
+            // Kita urutkan dulu biar aman (Ascending: 1, 2, 3...)
+            const sortedChapters = res?.data.chapters.sort(
+                (a: IChapter, b: IChapter) => {
+                    return parseFloat(a.number) - parseFloat(b.number);
+                }
+            );
+
+            setChapterList(sortedChapters);
+        } catch (error) {
+            console.error(error);
+        }
+    }, [slug]);
+
+    useEffect(() => {
+        fetchChapterList();
+    }, [fetchChapterList]);
+
+    // 3. LOGIKA NEXT & PREV (Menggunakan useMemo biar efisien)
+    const { prevChapter, nextChapter } = useMemo(() => {
+        if (!chapterList.length || !chapterNumber)
+            return { prevChapter: null, nextChapter: null };
+
+        // Cari index chapter saat ini di dalam list
+        const currentIndex = chapterList.findIndex(
+            (c) => String(c.number) === String(chapterNumber)
+        );
+
+        // Jika tidak ketemu (-1), return null
+        if (currentIndex === -1)
+            return { prevChapter: null, nextChapter: null };
+
+        // Prev adalah index - 1 (jika index > 0)
+        const prev = currentIndex > 0 ? chapterList[currentIndex - 1] : null;
+
+        // Next adalah index + 1 (jika index < panjang array - 1)
+        const next =
+            currentIndex < chapterList.length - 1
+                ? chapterList[currentIndex + 1]
+                : null;
+
+        return { prevChapter: prev, nextChapter: next };
+    }, [chapterList, chapterNumber]);
+
+    // --- RENDER ---
     if (loading)
-        return <div className="text-center p-10">Loading Chapter...</div>;
-    if (!chapter)
-        return <div className="text-center p-10">Chapter tidak ditemukan</div>;
+        return (
+            <div className="text-center p-10 text-white">
+                Loading Chapter...
+            </div>
+        );
+    if (!currentChapter)
+        return (
+            <div className="text-center p-10 text-white">
+                Chapter tidak ditemukan
+            </div>
+        );
 
     return (
         <GuestLayout>
             <div className="max-w-3xl mx-auto min-h-screen bg-gray-900 text-white">
-                {/* Header Navigasi Kecil */}
+                {/* Header Navigasi */}
                 <div className="p-4 flex justify-between items-center bg-gray-800 sticky top-0 z-10 shadow-md">
                     <Link
-                        to={`/${slug}`}
+                        to={`/comics/${slug}`}
                         className="text-blue-400 hover:underline"
                     >
-                        &larr; Kembali ke Detail
+                        &larr; Detail Komik
                     </Link>
-                    <h1 className="font-bold">
-                        Chapter {chapter.number}{" "}
-                        {chapter.title ? `- ${chapter.title}` : ""}
+                    <h1 className="font-bold text-sm md:text-lg">
+                        Ch. {currentChapter.number}{" "}
+                        {currentChapter.title
+                            ? `- ${currentChapter.title}`
+                            : ""}
                     </h1>
                 </div>
 
-                <div className="flex flex-col items-center w-full bg-black">
-                    {chapter.images.map((image) => (
-                        <img
-                            key={image.id}
-                            src={image.url}
-                            alt={`Page ${image.page_number}`}
-                            loading="lazy" // Biar hemat kuota & cepet (lazy load)
-                            className="w-full max-w-full h-auto object-cover"
-                        />
-                    ))}
+                {/* Gambar Komik */}
+                <div className="flex flex-col items-center w-full bg-black min-h-screen">
+                    {currentChapter.images.length > 0 ? (
+                        currentChapter.images.map((image) => (
+                            <img
+                                key={image.id}
+                                src={image.url}
+                                alt={`Page ${image.page_number}`}
+                                loading="lazy"
+                                className="w-full max-w-full h-auto object-cover"
+                            />
+                        ))
+                    ) : (
+                        <div className="py-20 text-gray-500">
+                            Belum ada gambar untuk chapter ini.
+                        </div>
+                    )}
                 </div>
 
-                {/* Navigasi Next/Prev Chapter (Opsional nanti) */}
-                <div className="p-8 text-center bg-gray-800 mt-4">
-                    <p>End of Chapter</p>
+                {/* Footer Navigasi Next/Prev */}
+
+                <div className="p-6 md:p-8 bg-gray-800 mt-4">
+                    <div className="flex justify-between items-center">
+                        {/* Tombol PREV */}
+                        {prevChapter ? (
+                            <Link
+                                to={`/read/${slug}/${prevChapter.number}`}
+                                className="text-blue-500 hover:underline"
+                            >
+                                &laquo; Prev (Ch. {prevChapter.number})
+                            </Link>
+                        ) : (
+                            <button
+                                disabled
+                                className="text-gray-500 cursor-not-allowed"
+                            >
+                                Start
+                            </button>
+                        )}
+
+                        <span className="text-gray-400 text-sm hidden md:block">
+                            List Chapter
+                        </span>
+
+                        {/* Tombol NEXT */}
+                        {nextChapter ? (
+                            <Link
+                                to={`/read/${slug}/${nextChapter.number}`}
+                                className="text-blue-500 hover:underline"
+                            >
+                                Next (Ch. {nextChapter.number}) &raquo;
+                            </Link>
+                        ) : (
+                            <button
+                                disabled
+                                className=" text-gray-500 cursor-not-allowed"
+                            >
+                                End
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </GuestLayout>
