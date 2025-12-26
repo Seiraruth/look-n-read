@@ -161,17 +161,16 @@ class ComicController extends Controller
     /**
      * Display the specified comic.
      */
-    public function show($slug): JsonResponse
+    /**
+     * Display the specified comic.
+     */
+    public function show(Comic $comic): JsonResponse
     {
         try {
-            // Find comic by slug
-            $comic = Comic::where('slug', $slug)->first();
+            if (!$comic)
+                return response()->json(['msg' => 'Gak ketemu'], 404);
 
-            if (!$comic) {
-                return response()->json(['msg' => 'Comic not found'], 404);
-            }
-
-            // Load relationships
+            // Bagian yang bikin error
             $comic->load(['chapters', 'genres']);
 
             return response()->json($comic);
@@ -187,15 +186,8 @@ class ComicController extends Controller
         }
     }
 
-    public function update(Request $request, $slug): JsonResponse
+    public function update(Request $request, Comic $comic): JsonResponse
     {
-        // Find comic by slug
-        $comic = Comic::where('slug', $slug)->first();
-
-        if (!$comic) {
-            return response()->json(['message' => 'Comic not found'], 404);
-        }
-
         // Simpan slug lama buat referensi nama folder lama
         $oldSlug = $comic->slug;
 
@@ -291,10 +283,10 @@ class ComicController extends Controller
     /**
      * Remove the specified comic.
      */
-    public function destroy($id)
+    public function destroy(Comic $comic)
     {
         // 1. Ambil Data (Gunakan withTrashed jaga-jaga kalau statusnya soft deleted)
-        $comic = Comic::withTrashed()->find($id);
+        $comic = Comic::withTrashed()->find($comic->id);
 
         if (!$comic) {
             return response()->json(['message' => 'Comic not found'], 404);
