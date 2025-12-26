@@ -40,7 +40,7 @@ export interface IChapter {
     title: string;
     slug: string;
     number: string;
-    created_at: Date | string | undefined;
+    created_at: Date | string;
     updated_at: Date | string | undefined;
     published_at?: Date | string | null;
 }

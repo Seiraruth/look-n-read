@@ -1,5 +1,5 @@
 import GuestLayout from "@/components/layouts/guest/GuestLayout";
-import Navbar from "@/components/layouts/guest/Navbar";
+import { Navbar } from "@/components/layouts/guest/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -244,7 +244,8 @@ const DetailPage = () => {
                                 ) : (
                                     <Button
                                         variant={"outline"}
-                                        className="hover:bg-primary hover:text-background h-auto text-destructive italic col-span-5"
+                                        disabled
+                                        className="h-20 text-destructive text-xl col-span-5 cursor-not-allowed"
                                     >
                                         No Chapter 😑
                                     </Button>

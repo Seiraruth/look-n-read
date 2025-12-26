@@ -24,6 +24,7 @@ class GenreSeeder extends Seeder
             'Slice of Life',
             'Sports',
             'Supernatural',
+            'Super Power',
             'Thriller',
             'Tragedy',
 

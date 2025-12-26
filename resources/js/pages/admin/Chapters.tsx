@@ -39,6 +39,7 @@ export default function Chapters() {
         const load = async () => {
             try {
                 const response = await axios.get(`/api/comics/${slug}`);
+                response.data.chapters.sort().reverse();
                 setComic(response.data);
             } catch (error) {
                 console.error("Chapter.tsx error: ", error);
@@ -86,6 +87,8 @@ export default function Chapters() {
         }
     };
 
+    console.log(comic);
+
     return (
         <AdminLayout>
             <div className="p-8">
@@ -113,7 +116,7 @@ export default function Chapters() {
                                     No. Chapter
                                 </TableHead>
                                 <TableHead>Judul Chapter</TableHead>
-                                <TableHead>Jumlah Halaman</TableHead>
+                                <TableHead>Halaman</TableHead>
                                 <TableHead>Tanggal Upload</TableHead>
                                 <TableHead className="text-right">
                                     Aksi
@@ -132,7 +135,7 @@ export default function Chapters() {
                                     </TableCell>
                                     <TableCell>
                                         {/* Kamu bisa hitung jumlah gambar dari relasi chapter_images */}
-                                        {comic.chapters.length} Hal
+                                        {item.number} Hal
                                     </TableCell>
                                     <TableCell>
                                         {new Date(

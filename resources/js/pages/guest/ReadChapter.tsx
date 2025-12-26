@@ -22,16 +22,14 @@ type TChapterDetail = {
 
 const ReadChapter = () => {
     const { slug, chapterNumber } = useParams();
-
     // State untuk chapter yang SEDANG DIBACA
     const [currentChapter, setCurrentChapter] = useState<TChapterDetail | null>(
         null
     );
-
     // State untuk DAFTAR SEMUA CHAPTER (untuk navigasi)
     const [chapterList, setChapterList] = useState<IChapter[]>([]);
-
     const [loading, setLoading] = useState(true);
+    const [comicName, setComicName] = useState<string>("");
 
     // 1. Load Data Chapter yang sedang dibuka (Images)
     useEffect(() => {
@@ -62,7 +60,7 @@ const ReadChapter = () => {
                     return parseFloat(a.number) - parseFloat(b.number);
                 }
             );
-
+            setComicName(res?.data.title);
             setChapterList(sortedChapters);
         } catch (error) {
             console.error(error);
@@ -119,16 +117,16 @@ const ReadChapter = () => {
                 {/* Header Navigasi */}
                 <div className="p-4 flex justify-between items-center bg-gray-800 sticky top-0 z-10 shadow-md">
                     <Link
-                        to={`/comics/${slug}`}
+                        to={`/${slug}`}
                         className="text-blue-400 hover:underline"
                     >
                         &larr; Detail Komik
                     </Link>
                     <h1 className="font-bold text-sm md:text-lg">
-                        Ch. {currentChapter.number}{" "}
-                        {currentChapter.title
-                            ? `- ${currentChapter.title}`
-                            : ""}
+                        {comicName} -{" "}
+                        {parseFloat(currentChapter.number) < 10
+                            ? `Chapter 0${currentChapter.number}`
+                            : `Chapter ${currentChapter.number}`}
                     </h1>
                 </div>
 
@@ -154,44 +152,50 @@ const ReadChapter = () => {
                 {/* Footer Navigasi Next/Prev */}
 
                 <div className="p-6 md:p-8 bg-gray-800 mt-4">
-                    <div className="flex justify-between items-center">
+                    <div className="grid grid-cols-3">
                         {/* Tombol PREV */}
-                        {prevChapter ? (
-                            <Link
-                                to={`/read/${slug}/${prevChapter.number}`}
-                                className="text-blue-500 hover:underline"
-                            >
-                                &laquo; Prev (Ch. {prevChapter.number})
-                            </Link>
-                        ) : (
-                            <button
-                                disabled
-                                className="text-gray-500 cursor-not-allowed"
-                            >
-                                Start
-                            </button>
-                        )}
+                        <div className="flex justify-center">
+                            {prevChapter ? (
+                                <Link
+                                    to={`/read/${slug}/${prevChapter.number}`}
+                                    className="text-blue-500 hover:underline"
+                                >
+                                    &laquo; Prev (Ch. {prevChapter.number})
+                                </Link>
+                            ) : (
+                                <button
+                                    disabled
+                                    className="text-gray-500 cursor-not-allowed"
+                                >
+                                    Start
+                                </button>
+                            )}
+                        </div>
 
-                        <span className="text-gray-400 text-sm hidden md:block">
-                            List Chapter
-                        </span>
+                        <div className="flex justify-center">
+                            <span className="text-gray-400 text-sm hidden md:block">
+                                List Chapter
+                            </span>
+                        </div>
 
                         {/* Tombol NEXT */}
-                        {nextChapter ? (
-                            <Link
-                                to={`/read/${slug}/${nextChapter.number}`}
-                                className="text-blue-500 hover:underline"
-                            >
-                                Next (Ch. {nextChapter.number}) &raquo;
-                            </Link>
-                        ) : (
-                            <button
-                                disabled
-                                className=" text-gray-500 cursor-not-allowed"
-                            >
-                                End
-                            </button>
-                        )}
+                        <div className="flex justify-center">
+                            {nextChapter ? (
+                                <Link
+                                    to={`/read/${slug}/${nextChapter.number}`}
+                                    className="text-blue-500 hover:underline"
+                                >
+                                    Next (Ch. {nextChapter.number}) &raquo;
+                                </Link>
+                            ) : (
+                                <button
+                                    disabled
+                                    className=" text-gray-500 cursor-not-allowed"
+                                >
+                                    End
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

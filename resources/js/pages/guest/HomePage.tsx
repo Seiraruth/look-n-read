@@ -1,13 +1,14 @@
 import GuestLayout from "@/components/layouts/guest/GuestLayout";
-import Navbar from "@/components/layouts/guest/Navbar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IChapter, IComic, IGenre } from "@/types/index.type";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDistance } from "date-fns";
 import { id } from "date-fns/locale/id";
+import { Navbar } from "@/components/layouts/guest/Navbar";
+import { customIdLocale } from "@/lib/utils";
 
 document.title = "Homepage";
 
@@ -26,21 +27,22 @@ export default function HomePage() {
         { name: "Manhua", count: 67, seed: "manhua" },
     ];
 
-    useEffect(() => {
+    const fetchComics = useCallback(async () => {
         setIsLoading(true);
-        const load = async () => {
-            try {
-                const res = await axios.get("/api/comics");
-                setComics(res.data.data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        load();
+        try {
+            const res = await axios.get("/api/comics");
+            setComics(res.data.data);
+        } catch (error) {
+            console.error(error);
+        }
+    }, [setComics]);
+
+    useEffect(() => {
+        fetchComics();
         setTimeout(() => {
             setIsLoading(false);
         }, 3000);
-    }, []);
+    }, [fetchComics]);
 
     // console.log(comics);
 
@@ -51,7 +53,7 @@ export default function HomePage() {
             <GuestLayout>
                 {/* Type Categories */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                    {comicTypes.map((type) => (
+                    {comicTypes?.map((type) => (
                         <div
                             key={type.name}
                             className="group cursor-pointer bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-xl p-6 border border-white/10 hover:border-purple-500/50 transition-all"
@@ -95,15 +97,30 @@ export default function HomePage() {
                                     className="group cursor-pointer"
                                 >
                                     <Link to={`/${i.slug}`}>
-                                        <div className="aspect-[2/3] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all">
+                                        <div className="aspect-[2/3] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all relative">
                                             {isLoading ? (
                                                 <Skeleton className="w-full h-full" />
                                             ) : (
-                                                <img
-                                                    src={i.cover_image}
-                                                    alt={`Comic ${i.title}`}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                />
+                                                <>
+                                                    <img
+                                                        src={i.cover_image}
+                                                        alt={`Comic ${i.title}`}
+                                                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                                    />
+                                                    <img
+                                                        src={`/assets/flags/${
+                                                            i.type.toLowerCase() ===
+                                                            "manga"
+                                                                ? "jp-original.webp"
+                                                                : i.type.toLowerCase() ===
+                                                                  "manhua"
+                                                                ? "cn-original.webp"
+                                                                : "kr-original.webp"
+                                                        }`}
+                                                        alt={i.type}
+                                                        className="absolute top-1 right-1 w-8 rounded-sm"
+                                                    />
+                                                </>
                                             )}
                                         </div>
                                     </Link>
@@ -114,50 +131,65 @@ export default function HomePage() {
                                         </div>
                                     ) : (
                                         <div className="mt-2">
-                                            <h3 className="text-sm font-medium text-gray-300 truncate group-hover:text-purple-400 transition-colors">
-                                                {i.title}
-                                            </h3>
-                                            <Link
-                                                to={`/read/${i.slug}/${
-                                                    i.chapters.at(-1)?.number
-                                                }`}
-                                            >
+                                            <Link to={`/${i.slug}`}>
+                                                <h3 className="text-sm font-medium text-gray-300 truncate hover:text-purple-400 transition-colors hover:underline">
+                                                    {i.title}
+                                                </h3>
+                                            </Link>
+                                            {i.chapters.length > 0 ? (
+                                                <Link
+                                                    to={`/read/${i.slug}/${
+                                                        i.chapters.at(-1)
+                                                            ?.number
+                                                    }`}
+                                                >
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className="text-xs text-gray-600 w-full mt-3 flex justify-between"
+                                                    >
+                                                        <span>
+                                                            {
+                                                                i.chapters.at(
+                                                                    -1
+                                                                )?.title
+                                                            }
+                                                        </span>
+                                                        <span>
+                                                            {formatDistance(
+                                                                new Date(
+                                                                    String(
+                                                                        i.chapters.at(
+                                                                            -1
+                                                                        )
+                                                                            ?.created_at
+                                                                    )
+                                                                ),
+                                                                new Date(),
+                                                                {
+                                                                    locale: customIdLocale,
+                                                                    includeSeconds:
+                                                                        true,
+                                                                }
+                                                            )}
+                                                        </span>
+                                                    </Button>
+                                                </Link>
+                                            ) : (
                                                 <Button
                                                     variant={"outline"}
-                                                    className="text-xs text-gray-600 w-full mt-3 flex justify-between"
+                                                    disabled
+                                                    className="text-xs text-destructive w-full mt-3 flex justify-center cursor-not-allowed"
                                                 >
-                                                    <span>
-                                                        {
-                                                            i.chapters.at(-1)
-                                                                ?.title
-                                                        }
-                                                    </span>
-                                                    <span>
-                                                        {formatDistance(
-                                                            new Date(
-                                                                String(
-                                                                    i.chapters.at(
-                                                                        -1
-                                                                    )
-                                                                        ?.created_at
-                                                                )
-                                                            ),
-                                                            new Date(),
-                                                            {
-                                                                addSuffix: true,
-                                                                locale: id,
-                                                            }
-                                                        )}
-                                                    </span>
+                                                    No Chapter
                                                 </Button>
-                                            </Link>
+                                            )}
                                         </div>
                                     )}
                                 </div>
                             ))
                         ) : (
                             <div className="col-span-4">
-                                <p className="text-destructive font-bold text-5xl italic">
+                                <p className="text-destructive font-bold text-5xl">
                                     Comic Not Found 😱
                                 </p>
                             </div>
