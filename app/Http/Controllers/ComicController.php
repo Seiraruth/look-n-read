@@ -54,6 +54,33 @@ class ComicController extends Controller
     }
 
     /**
+     * Get comics statistics by type.
+     */
+    public function stats(): JsonResponse
+    {
+        try {
+            $stats = [
+                'manga' => Comic::where('type', 'manga')->count(),
+                'manhwa' => Comic::where('type', 'manhwa')->count(),
+                'manhua' => Comic::where('type', 'manhua')->count(),
+            ];
+
+            return response()->json([
+                'data' => $stats
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching comics stats: ' . $e->getMessage());
+            return response()->json([
+                'data' => [
+                    'manga' => 0,
+                    'manhwa' => 0,
+                    'manhua' => 0,
+                ]
+            ], 500);
+        }
+    }
+
+    /**
      * Store a newly created comic.
      */
     public function store(Request $request): JsonResponse
@@ -66,7 +93,7 @@ class ComicController extends Controller
             'status' => 'required|in:ongoing,completed',
             'type' => 'required|in:manga,manhwa,manhua',
             'synopsis' => 'required|string',
-            'cover_image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'cover_image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // Increased to 5MB
 
             // --- TAMBAHAN BARU: Validasi Genre ---
             'genres' => 'required|array', // Harus berupa array (contoh: [1, 3])
@@ -134,13 +161,17 @@ class ComicController extends Controller
     /**
      * Display the specified comic.
      */
-    public function show(Comic $comic): JsonResponse
+    public function show($slug): JsonResponse
     {
         try {
-            if (!$comic)
-                return response()->json(['msg' => 'Gak ketemu'], 404);
+            // Find comic by slug
+            $comic = Comic::where('slug', $slug)->first();
 
-            // Bagian yang bikin error
+            if (!$comic) {
+                return response()->json(['msg' => 'Comic not found'], 404);
+            }
+
+            // Load relationships
             $comic->load(['chapters', 'genres']);
 
             return response()->json($comic);
@@ -156,8 +187,15 @@ class ComicController extends Controller
         }
     }
 
-    public function update(Request $request, Comic $comic): JsonResponse
+    public function update(Request $request, $slug): JsonResponse
     {
+        // Find comic by slug
+        $comic = Comic::where('slug', $slug)->first();
+
+        if (!$comic) {
+            return response()->json(['message' => 'Comic not found'], 404);
+        }
+
         // Simpan slug lama buat referensi nama folder lama
         $oldSlug = $comic->slug;
 
@@ -253,10 +291,10 @@ class ComicController extends Controller
     /**
      * Remove the specified comic.
      */
-    public function destroy(Comic $comic)
+    public function destroy($id)
     {
         // 1. Ambil Data (Gunakan withTrashed jaga-jaga kalau statusnya soft deleted)
-        $comic = Comic::withTrashed()->find($comic->id);
+        $comic = Comic::withTrashed()->find($id);
 
         if (!$comic) {
             return response()->json(['message' => 'Comic not found'], 404);

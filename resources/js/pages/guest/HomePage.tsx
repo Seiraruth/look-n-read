@@ -22,36 +22,126 @@ export default function HomePage() {
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
     const [categoryComics, setCategoryComics] = useState<IComicChapter[]>([]);
     const [isCategoryLoading, setIsCategoryLoading] = useState<boolean>(false);
+    const [categoryCounts, setCategoryCounts] = useState<{[key: string]: number}>({
+        manga: 0,
+        manhwa: 0,
+        manhua: 0
+    });
+    const [isCountsLoading, setIsCountsLoading] = useState<boolean>(true);
 
     const comicTypes = [
-        { name: "Manga", count: 150, seed: "manga" },
-        { name: "Manhwa", count: 89, seed: "manhwa" },
-        { name: "Manhua", count: 67, seed: "manhua" },
+        { name: "Manga", count: categoryCounts.manga, seed: "manga" },
+        { name: "Manhwa", count: categoryCounts.manhwa, seed: "manhwa" },
+        { name: "Manhua", count: categoryCounts.manhua, seed: "manhua" },
     ];
 
+    // Helper function to get proper image URL
+    const getImageUrl = (imagePath: string | null | undefined): string | undefined => {
+        if (!imagePath) return undefined;
+        // If it already starts with http/https, return as-is
+        if (imagePath.startsWith('http')) return imagePath;
+        // If it starts with storage/, return as-is 
+        if (imagePath.startsWith('storage/')) return `/${imagePath}`;
+        // Otherwise, prepend /storage/
+        return `/storage/${imagePath}`;
+    };
+
+    // Helper function to get preview comics for a category
+    const getCategoryPreviewComics = (categoryName: string) => {
+        const categoryKey = categoryName.toLowerCase();
+        return comics.filter(comic => 
+            comic.type?.toLowerCase() === categoryKey
+        ).slice(0, 4);
+    };
+
+    // Helper function to safely format dates
+    const safeFormatDistance = (dateValue: string | Date | undefined | null) => {
+        try {
+            if (!dateValue) return 'Unknown';
+            const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+            if (isNaN(date.getTime())) return 'Invalid date';
+            return formatDistance(date, new Date(), { addSuffix: true, locale: id });
+        } catch (error) {
+            console.warn('Date formatting error:', error);
+            return 'Unknown';
+        }
+    };
+
     useEffect(() => {
-        setIsLoading(true);
-        const load = async () => {
+        const loadData = async () => {
+            setIsLoading(true);
+            setIsCountsLoading(true);
+            
             try {
-                const res = await axios.get("/api/comics");
-                setComics(res.data.data);
+                // Load comics and category counts in parallel
+                const [comicsRes, countsRes] = await Promise.all([
+                    axios.get("/api/comics").catch(() => ({ data: { data: [] } })),
+                    axios.get("/api/comics/stats").catch(() => ({ data: { data: { manga: 0, manhwa: 0, manhua: 0 } } }))
+                ]);
+                
+                // Safely handle comics data
+                const comicsData = comicsRes.data.data || comicsRes.data || [];
+                setComics(Array.isArray(comicsData) ? comicsData : []);
+                
+                // Update category counts from API response
+                if (countsRes.data?.data) {
+                    setCategoryCounts({
+                        manga: countsRes.data.data.manga || 0,
+                        manhwa: countsRes.data.data.manhwa || 0,
+                        manhua: countsRes.data.data.manhua || 0
+                    });
+                }
             } catch (error) {
-                console.error(error);
+                console.error("Error loading data:", error);
+                // Fallback: try to load just comics
+                try {
+                    const comicsRes = await axios.get("/api/comics");
+                    const comicsData = comicsRes.data.data || comicsRes.data || [];
+                    const safeComicsData = Array.isArray(comicsData) ? comicsData : [];
+                    setComics(safeComicsData);
+                    
+                    // Count categories from the comics data as fallback
+                    const counts = safeComicsData.reduce((acc: {[key: string]: number}, comic: IComicChapter) => {
+                        const type = comic?.type?.toLowerCase() || 'manga';
+                        acc[type] = (acc[type] || 0) + 1;
+                        return acc;
+                    }, {});
+                    
+                    setCategoryCounts({
+                        manga: counts.manga || 0,
+                        manhwa: counts.manhwa || 0,
+                        manhua: counts.manhua || 0
+                    });
+                } catch (fallbackError) {
+                    console.error("Fallback error:", fallbackError);
+                    // Set empty state if everything fails
+                    setComics([]);
+                    setCategoryCounts({
+                        manga: 0,
+                        manhwa: 0,
+                        manhua: 0
+                    });
+                }
+            } finally {
+                setIsCountsLoading(false);
+                setTimeout(() => {
+                    setIsLoading(false);
+                }, 1500);
             }
         };
-        load();
-        setTimeout(() => {
-            setIsLoading(false);
-        }, 3000);
+        
+        loadData();
     }, []);
 
     const handleCategoryClick = async (categoryName: string) => {
-        // Open modal and load comics for this category
-        setExpandedCategory(categoryName);
-        setIsCategoryLoading(true);
         try {
+            // Open modal and load comics for this category
+            setExpandedCategory(categoryName);
+            setIsCategoryLoading(true);
+            
             const res = await axios.get(`/api/comics?type=${categoryName.toLowerCase()}`);
-            setCategoryComics(res.data.data);
+            const categoryData = res.data.data || res.data || [];
+            setCategoryComics(Array.isArray(categoryData) ? categoryData : []);
         } catch (error) {
             console.error("Error fetching category comics:", error);
             setCategoryComics([]);
@@ -106,23 +196,47 @@ export default function HomePage() {
                                     <h2 className="text-2xl font-bold text-white">
                                         {type.name}
                                     </h2>
-                                    <span className="text-sm text-gray-400">
-                                        {type.count} titles
-                                    </span>
+                                    <div className="text-sm text-gray-400">
+                                        {isCountsLoading ? (
+                                            <Skeleton className="h-4 w-16" />
+                                        ) : (
+                                            <span>{type.count} titles</span>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-4 gap-2">
-                                    {[1, 2, 3, 4].map((i) => (
-                                        <div
-                                            key={i}
-                                            className="aspect-[2/3] rounded-lg overflow-hidden"
-                                        >
-                                            <img
-                                                src={`https://picsum.photos/seed/${type.seed}${i}/200/300`}
-                                                alt={`${type.name} ${i}`}
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                            />
-                                        </div>
-                                    ))}
+                                    {[0, 1, 2, 3].map((i) => {
+                                        const previewComics = getCategoryPreviewComics(type.name);
+                                        const comic = previewComics[i];
+                                        
+                                        return (
+                                            <div
+                                                key={i}
+                                                className="aspect-[2/3] rounded-lg overflow-hidden bg-slate-800"
+                                            >
+                                                {isLoading ? (
+                                                    <Skeleton className="w-full h-full" />
+                                                ) : comic ? (
+                                                    <img
+                                                        src={getImageUrl(comic.cover_image)}
+                                                        alt={comic.title}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                                        onError={(e) => {
+                                                            // Fallback to placeholder if image fails to load
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.src = `https://picsum.photos/seed/${type.seed}${i}/200/300`;
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <img
+                                                        src={`https://picsum.photos/seed/${type.seed}${i}/200/300`}
+                                                        alt={`${type.name} placeholder ${i + 1}`}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                                    />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ))}
@@ -136,7 +250,7 @@ export default function HomePage() {
                     </h2>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         {comics.length > 0 ? (
-                            comics.map((i) => (
+                            comics.filter(comic => comic && comic.id).map((i) => (
                                 <div
                                     key={i.id}
                                     className="group cursor-pointer"
@@ -147,9 +261,13 @@ export default function HomePage() {
                                                 <Skeleton className="w-full h-full" />
                                             ) : (
                                                 <img
-                                                    src={i.cover_image}
+                                                    src={getImageUrl(i.cover_image)}
                                                     alt={`Comic ${i.title}`}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.src = `https://picsum.photos/seed/${i.slug}/200/300`;
+                                                    }}
                                                 />
                                             )}
                                         </div>
@@ -179,20 +297,8 @@ export default function HomePage() {
                                                         }
                                                     </span>
                                                     <span>
-                                                        {formatDistance(
-                                                            new Date(
-                                                                String(
-                                                                    i.chapters.at(
-                                                                        -1
-                                                                    )
-                                                                        ?.created_at
-                                                                )
-                                                            ),
-                                                            new Date(),
-                                                            {
-                                                                addSuffix: true,
-                                                                locale: id,
-                                                            }
+                                                        {safeFormatDistance(
+                                                            i.chapters.at(-1)?.created_at
                                                         )}
                                                     </span>
                                                 </Button>
@@ -252,14 +358,18 @@ export default function HomePage() {
                                 </div>
                             ) : categoryComics.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                                    {categoryComics.map((comic) => (
+                                    {categoryComics.filter(comic => comic && comic.id).map((comic) => (
                                         <div key={comic.id} className="group cursor-pointer">
                                             <Link to={`/${comic.slug}`} onClick={closeModal}>
                                                 <div className="aspect-[2/3] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all">
                                                     <img
-                                                        src={comic.cover_image}
+                                                        src={getImageUrl(comic.cover_image)}
                                                         alt={comic.title}
                                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.src = `https://picsum.photos/seed/${comic.slug}/200/300`;
+                                                        }}
                                                     />
                                                 </div>
                                             </Link>
@@ -278,10 +388,8 @@ export default function HomePage() {
                                                         >
                                                             <span className="truncate">{comic.chapters.at(-1)?.title}</span>
                                                             <span className="text-gray-500 ml-1">
-                                                                {formatDistance(
-                                                                    new Date(String(comic.chapters.at(-1)?.created_at)),
-                                                                    new Date(),
-                                                                    { addSuffix: true, locale: id }
+                                                                {safeFormatDistance(
+                                                                    comic.chapters.at(-1)?.created_at
                                                                 )}
                                                             </span>
                                                         </Button>

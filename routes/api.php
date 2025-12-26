@@ -18,6 +18,7 @@ use App\Http\Controllers\PublicComicController;
 
 // Group Komik
 Route::get('/comics', [ComicController::class, 'index']); // List Komik
+Route::get('/comics/stats', [ComicController::class, 'stats']); // Comics Statistics
 Route::get('/comics/{comic:slug}', [ComicController::class, 'show']); // Detail Komik
 
 // Group Chapter
