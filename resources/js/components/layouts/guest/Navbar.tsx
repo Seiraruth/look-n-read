@@ -23,7 +23,7 @@ const Logo = (props: React.SVGAttributes<SVGElement>) => {
         <img
             src="/assets/images/logo.png"
             alt="Logo Loon N Read"
-            className="size-20"
+            className="w-14"
         />
     );
 };
@@ -205,7 +205,7 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
                             </Popover>
                         )}
                         {/* Main nav */}
-                        <div className="flex flex-1 items-center gap-6 justify-between">
+                        <div className="flex flex-1 items-center gap-6 justify-between lg:px-8">
                             <button
                                 onClick={(e) => e.preventDefault()}
                                 className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer"
