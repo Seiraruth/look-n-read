@@ -78,6 +78,7 @@ export interface Navbar04Props extends React.HTMLAttributes<HTMLElement> {
     onSignInClick?: () => void;
     onCartClick?: () => void;
     onSearchSubmit?: (query: string) => void;
+    onCategoryClick?: (categoryName: string) => void;
 }
 // Default navigation links
 const defaultNavigationLinks: Navbar04NavItem[] = [
@@ -94,6 +95,7 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
             navigationLinks = defaultNavigationLinks,
             searchPlaceholder = "Search...",
             onSearchSubmit,
+            onCategoryClick,
             ...props
         },
         ref
@@ -173,9 +175,9 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
                                                         key={index}
                                                         className="w-full"
                                                     >
-                                                        <Link
-                                                            to={""}
-                                                            className="flex gap-5 hover:text-primary hover:font-semibold"
+                                                        <button
+                                                            onClick={() => onCategoryClick?.(link.label)}
+                                                            className="flex gap-5 hover:text-primary hover:font-semibold w-full text-left"
                                                         >
                                                             <img
                                                                 src={link.flag}
@@ -184,7 +186,7 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
                                                             <span>
                                                                 {link.label}
                                                             </span>
-                                                        </Link>
+                                                        </button>
                                                     </NavigationMenuItem>
                                                 )
                                             )}
@@ -223,10 +225,11 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
                                             <NavigationMenuItem key={index}>
                                                 <NavigationMenuLink
                                                     href={link.href}
-                                                    onClick={(e) =>
-                                                        e.preventDefault()
-                                                    }
-                                                    className="flex flex-col items-center"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        onCategoryClick?.(link.label);
+                                                    }}
+                                                    className="flex flex-col items-center cursor-pointer"
                                                 >
                                                     <img
                                                         src={link.flag}
