@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,16 +21,18 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AdminLayout from "@/components/layouts/admin/AdminLayout";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { ComicsType } from "@/types/index.type";
 import { toast } from "sonner";
 
-document.title = "Dashboard - admin";
-
 const Dashboard = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [comics, setComics] = useState<ComicsType[]>([]);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const searchRef = useRef(null);
+
+    const currentQuery = searchParams.get("search") || "";
 
     const itemsPerPage = 6;
     const totalPages = Math.ceil(comics?.length / itemsPerPage);
@@ -38,6 +40,10 @@ const Dashboard = () => {
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
+
+    useEffect(() => {
+        document.title = "Dashboard - admin";
+    }, []);
 
     const handleDeleteComic = async (id: number) => {
         const token = localStorage.getItem("token");
@@ -57,15 +63,43 @@ const Dashboard = () => {
         }
     };
 
-    useEffect(() => {
-        const load = async () => {
-            const response = await axios.get("/api/comics");
-            setComics(response?.data.data);
-        };
-        load();
-    }, []);
+    const fetchComic = useCallback(async () => {
+        try {
+            if (currentQuery) {
+                const response = await axios.get(
+                    `/api/comics?search=${currentQuery}`
+                );
+                setComics(response.data.data);
+            } else {
+                const response = await axios.get("/api/comics");
+                setComics(response?.data.data);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }, [currentQuery]);
 
-    const comic = [];
+    useEffect(() => {
+        fetchComic();
+    }, [fetchComic]);
+
+    const handleSearch = (queryRef: any) => {
+        if (!queryRef && queryRef.trim() === "") {
+            setSearchParams({});
+        } else {
+            setSearchParams({ search: queryRef });
+        }
+    };
+
+    const handleSearchEnter = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            handleSearch(
+                (searchRef.current as unknown as HTMLInputElement)
+                    ?.value as string
+            );
+        }
+    };
 
     return (
         <AdminLayout>
@@ -74,12 +108,28 @@ const Dashboard = () => {
                 <Card className="pb-0 gap-0 mx-6 md:mx-8">
                     <CardHeader className="border-b border-border gap-0">
                         <div className="flex flex-col sm:flex-row items-center gap-4">
-                            <div className="relative flex-1 max-w-sm">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search comic"
-                                    className="pl-10"
-                                />
+                            <div className="relative flex max-w-lg gap-5  w-full">
+                                <div className="w-full">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        ref={searchRef}
+                                        placeholder="Search comic"
+                                        className="pl-10"
+                                        onKeyDown={handleSearchEnter}
+                                    />
+                                </div>
+                                <Button
+                                    type="button"
+                                    onClick={() =>
+                                        handleSearch(
+                                            (
+                                                searchRef.current as unknown as HTMLInputElement
+                                            )?.value as string
+                                        )
+                                    }
+                                >
+                                    Search
+                                </Button>
                             </div>
                             <div className="sm:ml-auto flex items-center gap-2 flex-wrap justify-center">
                                 <Button

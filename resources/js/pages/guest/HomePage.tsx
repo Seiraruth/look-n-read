@@ -4,13 +4,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { IChapter, IComic, IGenre } from "@/types/index.type";
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { formatDistance } from "date-fns";
 import { id } from "date-fns/locale/id";
 import { Navbar } from "@/components/layouts/guest/Navbar";
 import { customIdLocale } from "@/lib/utils";
-
-document.title = "Homepage";
 
 interface IComicChapter extends IComic {
     chapters: IChapter[];
@@ -20,33 +18,62 @@ interface IComicChapter extends IComic {
 export default function HomePage() {
     const [comics, setComics] = useState<IComicChapter[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+    const [expandedCategory, setExpandedCategory] = useState<string | null>(
+        null
+    );
     const [categoryComics, setCategoryComics] = useState<IComicChapter[]>([]);
     const [isCategoryLoading, setIsCategoryLoading] = useState<boolean>(false);
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Ambil value search dari URL (kalau ada)
+    const currentQuery = searchParams.get("search") || "";
+
+    useEffect(() => {
+        document.title = "Homepage";
+    }, []);
 
     const fetchComics = useCallback(async () => {
         setIsLoading(true);
         try {
-            const res = await axios.get("/api/comics");
-            setComics(res.data.data);
+            // Cek: Apakah di URL ada ?search=...
+            if (currentQuery) {
+                const res = await axios.get(
+                    `/api/comics?search=${currentQuery}`
+                );
+                setComics(res.data.data);
+            } else {
+                // Kalau gak ada, ambil semua
+                const res = await axios.get("/api/comics");
+                setComics(res.data.data);
+            }
         } catch (error) {
             console.error(error);
+        } finally {
+            setIsLoading(false);
         }
-    }, [setComics]);
+    }, [currentQuery]);
 
     useEffect(() => {
         fetchComics();
-        setTimeout(() => {
-            setIsLoading(false);
-        }, 3000);
     }, [fetchComics]);
+
+    // --- TAMBAHKAN FUNGSI INI: HANDLE SEARCH ---
+    const handleSearch = (query: string) => {
+        if (!query || query.trim() === "") {
+            setSearchParams({}); // Hapus query params kalau kosong
+        } else {
+            setSearchParams({ search: query }); // Ubah URL jadi ?search=query
+        }
+    };
 
     const handleCategoryClick = async (categoryName: string) => {
         try {
             setExpandedCategory(categoryName);
             setIsCategoryLoading(true);
-            
-            const res = await axios.get(`/api/comics?type=${categoryName.toLowerCase()}`);
+
+            const res = await axios.get(
+                `/api/comics?type=${categoryName.toLowerCase()}`
+            );
             const categoryData = res.data.data || res.data || [];
             setCategoryComics(Array.isArray(categoryData) ? categoryData : []);
         } catch (error) {
@@ -65,21 +92,21 @@ export default function HomePage() {
     // Close modal on escape key
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
+            if (e.key === "Escape") {
                 closeModal();
             }
         };
 
         if (expandedCategory) {
-            document.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden';
+            document.addEventListener("keydown", handleEscape);
+            document.body.style.overflow = "hidden";
         } else {
-            document.body.style.overflow = 'unset';
+            document.body.style.overflow = "unset";
         }
 
         return () => {
-            document.removeEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'unset';
+            document.removeEventListener("keydown", handleEscape);
+            document.body.style.overflow = "unset";
         };
     }, [expandedCategory]);
 
@@ -87,7 +114,10 @@ export default function HomePage() {
 
     return (
         <>
-            <Navbar onCategoryClick={handleCategoryClick} />
+            <Navbar
+                onCategoryClick={handleCategoryClick}
+                onSearchSubmit={handleSearch}
+            />
             {/* Main Content */}
             <GuestLayout>
                 {/* Latest Updates */}
@@ -95,7 +125,7 @@ export default function HomePage() {
                     <h2 className="text-2xl font-bold text-white mb-6">
                         Latest Updates
                     </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         {comics.length > 0 ? (
                             comics
                                 .filter((comic) => comic && comic.id)
@@ -153,7 +183,7 @@ export default function HomePage() {
                                                     >
                                                         <Button
                                                             variant={"outline"}
-                                                            className="text-xs text-gray-600 w-full mt-3 flex justify-between"
+                                                            className="text-[10px] sm:text-xs text-gray-600 w-full mt-3 flex justify-between flex-wrap"
                                                         >
                                                             <span>
                                                                 {
@@ -210,11 +240,11 @@ export default function HomePage() {
             {expandedCategory && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     {/* Backdrop with blur effect */}
-                    <div 
+                    <div
                         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                         onClick={closeModal}
                     ></div>
-                    
+
                     {/* Modal Content */}
                     <div className="relative z-10 w-full max-w-7xl mx-4 max-h-[90vh] bg-slate-900/95 rounded-2xl border border-purple-500/30 shadow-2xl">
                         {/* Modal Header */}
@@ -226,12 +256,22 @@ export default function HomePage() {
                                 onClick={closeModal}
                                 className="p-2 hover:bg-purple-500/20 rounded-full transition-colors"
                             >
-                                <svg className="w-6 h-6 text-gray-300 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <svg
+                                    className="w-6 h-6 text-gray-300 hover:text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
                                 </svg>
                             </button>
                         </div>
-                        
+
                         {/* Modal Body */}
                         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
                             {isCategoryLoading ? (
@@ -246,66 +286,102 @@ export default function HomePage() {
                                 </div>
                             ) : categoryComics.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                                    {categoryComics.filter(comic => comic && comic.id).map((comic) => (
-                                        <div key={comic.id} className="group cursor-pointer">
-                                            <Link to={`/${comic.slug}`} onClick={closeModal}>
-                                                <div className="aspect-[2/3] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all">
-                                                    <img
-                                                        src={comic.cover_image}
-                                                        alt={comic.title}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                    />
-                                                </div>
-                                            </Link>
-                                            <div className="mt-3">
-                                                <Link to={`/${comic.slug}`} onClick={closeModal}>
-                                                    <h4 className="text-sm font-medium text-gray-300 truncate group-hover:text-purple-400 transition-colors hover:underline">
-                                                        {comic.title}
-                                                    </h4>
+                                    {categoryComics
+                                        .filter((comic) => comic && comic.id)
+                                        .map((comic) => (
+                                            <div
+                                                key={comic.id}
+                                                className="group cursor-pointer"
+                                            >
+                                                <Link
+                                                    to={`/${comic.slug}`}
+                                                    onClick={closeModal}
+                                                >
+                                                    <div className="aspect-[2/3] bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all">
+                                                        <img
+                                                            src={
+                                                                comic.cover_image
+                                                            }
+                                                            alt={comic.title}
+                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                        />
+                                                    </div>
                                                 </Link>
-                                                {comic.chapters.length > 0 ? (
-                                                    <Link 
-                                                        to={`/read/${comic.slug}/${comic.chapters.at(-1)?.number}`}
+                                                <div className="mt-3">
+                                                    <Link
+                                                        to={`/${comic.slug}`}
                                                         onClick={closeModal}
                                                     >
+                                                        <h4 className="text-sm font-medium text-gray-300 truncate group-hover:text-purple-400 transition-colors hover:underline">
+                                                            {comic.title}
+                                                        </h4>
+                                                    </Link>
+                                                    {comic.chapters.length >
+                                                    0 ? (
+                                                        <Link
+                                                            to={`/read/${
+                                                                comic.slug
+                                                            }/${
+                                                                comic.chapters.at(
+                                                                    -1
+                                                                )?.number
+                                                            }`}
+                                                            onClick={closeModal}
+                                                        >
+                                                            <Button
+                                                                variant="outline"
+                                                                className="text-xs text-gray-600 w-full mt-2 flex justify-between"
+                                                            >
+                                                                <span className="truncate">
+                                                                    {
+                                                                        comic.chapters.at(
+                                                                            -1
+                                                                        )?.title
+                                                                    }
+                                                                </span>
+                                                                <span className="text-gray-500 ml-1">
+                                                                    {formatDistance(
+                                                                        new Date(
+                                                                            String(
+                                                                                comic.chapters.at(
+                                                                                    -1
+                                                                                )
+                                                                                    ?.created_at
+                                                                            )
+                                                                        ),
+                                                                        new Date(),
+                                                                        {
+                                                                            locale: customIdLocale,
+                                                                            includeSeconds:
+                                                                                true,
+                                                                        }
+                                                                    )}
+                                                                </span>
+                                                            </Button>
+                                                        </Link>
+                                                    ) : (
                                                         <Button
                                                             variant="outline"
-                                                            className="text-xs text-gray-600 w-full mt-2 flex justify-between"
+                                                            disabled
+                                                            className="text-xs text-destructive w-full mt-2 flex justify-center cursor-not-allowed"
                                                         >
-                                                            <span className="truncate">{comic.chapters.at(-1)?.title}</span>
-                                                            <span className="text-gray-500 ml-1">
-                                                                {formatDistance(
-                                                                    new Date(String(comic.chapters.at(-1)?.created_at)),
-                                                                    new Date(),
-                                                                    {
-                                                                        locale: customIdLocale,
-                                                                        includeSeconds: true,
-                                                                    }
-                                                                )}
-                                                            </span>
+                                                            No Chapter
                                                         </Button>
-                                                    </Link>
-                                                ) : (
-                                                    <Button
-                                                        variant="outline"
-                                                        disabled
-                                                        className="text-xs text-destructive w-full mt-2 flex justify-center cursor-not-allowed"
-                                                    >
-                                                        No Chapter
-                                                    </Button>
-                                                )}
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
                                 </div>
                             ) : (
                                 <div className="text-center py-16">
                                     <div className="text-6xl mb-4">📚</div>
                                     <h3 className="text-xl font-semibold text-gray-300 mb-2">
-                                        No {expandedCategory?.toLowerCase()} found
+                                        No {expandedCategory?.toLowerCase()}{" "}
+                                        found
                                     </h3>
                                     <p className="text-gray-400">
-                                        Try checking back later for new additions!
+                                        Try checking back later for new
+                                        additions!
                                     </p>
                                 </div>
                             )}

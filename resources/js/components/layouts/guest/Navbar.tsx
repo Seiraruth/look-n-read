@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useState, useRef, useId } from "react";
+import { useEffect, useState, useRef } from "react";
 import { SearchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,9 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import type { ComponentProps } from "react";
 import { Link } from "react-router-dom";
-// Simple logo component for the navbar
+
+// --- COMPONENTS ---
 const Logo = (props: React.SVGAttributes<SVGElement>) => {
     return (
         <img
@@ -27,7 +27,7 @@ const Logo = (props: React.SVGAttributes<SVGElement>) => {
         />
     );
 };
-// Hamburger icon component
+
 const HamburgerIcon = ({
     className,
     ...props
@@ -42,7 +42,6 @@ const HamburgerIcon = ({
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        xmlns="http://www.w3.org/2000/svg"
         {...(props as any)}
     >
         <path
@@ -59,39 +58,34 @@ const HamburgerIcon = ({
         />
     </svg>
 );
-// Types
+
+// --- TYPES ---
 export interface Navbar04NavItem {
     href?: string;
     label: string;
     flag?: string;
 }
+
 export interface Navbar04Props extends React.HTMLAttributes<HTMLElement> {
     logo?: React.ReactNode;
-    logoHref?: string;
     navigationLinks?: Navbar04NavItem[];
-    signInText?: string;
-    signInHref?: string;
-    cartText?: string;
-    cartHref?: string;
-    cartCount?: number;
     searchPlaceholder?: string;
-    onSignInClick?: () => void;
-    onCartClick?: () => void;
     onSearchSubmit?: (query: string) => void;
     onCategoryClick?: (categoryName: string) => void;
 }
-// Default navigation links
+
 const defaultNavigationLinks: Navbar04NavItem[] = [
     { href: "#", flag: "/assets/flags/jp-waving.webp", label: "Manga" },
     { href: "#", flag: "/assets/flags/cn-waving.webp", label: "Manhua" },
     { href: "#", flag: "/assets/flags/kr-waving.webp", label: "Manhwa" },
 ];
+
+// --- MAIN NAVBAR ---
 export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
     (
         {
             className,
             logo = <Logo />,
-            logoHref = "#",
             navigationLinks = defaultNavigationLinks,
             searchPlaceholder = "Search...",
             onSearchSubmit,
@@ -102,63 +96,64 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
     ) => {
         const [isMobile, setIsMobile] = useState(false);
         const containerRef = useRef<HTMLElement>(null);
-        const searchId = useId();
+
+        // 1. STATE UNTUK SEARCH
+        const [searchQuery, setSearchQuery] = useState("");
+
         useEffect(() => {
             const checkWidth = () => {
-                if (containerRef.current) {
-                    const width = containerRef.current.offsetWidth;
-                    setIsMobile(width < 768); // 768px is md breakpoint
-                }
+                if (containerRef.current)
+                    setIsMobile(containerRef.current.offsetWidth < 768);
             };
             checkWidth();
-            const resizeObserver = new ResizeObserver(checkWidth);
-            if (containerRef.current) {
-                resizeObserver.observe(containerRef.current);
-            }
-            return () => {
-                resizeObserver.disconnect();
-            };
+            window.addEventListener("resize", checkWidth);
+            return () => window.removeEventListener("resize", checkWidth);
         }, []);
-        // Combine refs
+
         const combinedRef = React.useCallback(
             (node: HTMLElement | null) => {
                 containerRef.current = node;
-                if (typeof ref === "function") {
-                    ref(node);
-                } else if (ref) {
-                    ref.current = node;
-                }
+                if (typeof ref === "function") ref(node);
+                else if (ref) ref.current = node;
             },
             [ref]
         );
-        const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-            e.preventDefault();
-            const formData = new FormData(e.currentTarget);
-            const query = formData.get("search") as string;
+
+        // 2. TRIGGER SEARCH (Tanpa Reload)
+        const handleSearchAction = () => {
+            // Validasi: Jangan search kalau kosong
+            console.log("Searching for:", searchQuery);
             if (onSearchSubmit) {
-                onSearchSubmit(query);
+                onSearchSubmit(searchQuery);
             }
         };
+
+        // 3. HANDLE ENTER (Wajib preventDefault)
+        const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Enter") {
+                e.preventDefault(); // <--- INI KUNCI BIAR GAK RELOAD
+                handleSearchAction();
+            }
+        };
+
         return (
             <header
                 ref={combinedRef}
                 className={cn(
-                    "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline",
+                    "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur px-4 md:px-6",
                     className
                 )}
                 {...(props as any)}
             >
                 <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4">
-                    {/* Left side */}
                     <div className="flex flex-1 items-center gap-2">
-                        {/* Mobile menu trigger */}
                         {isMobile && (
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
-                                        className="group h-9 w-9 hover:bg-accent hover:text-accent-foreground"
                                         variant="ghost"
                                         size="icon"
+                                        className="h-9 w-9"
                                     >
                                         <HamburgerIcon />
                                     </Button>
@@ -167,100 +162,101 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
                                     align="start"
                                     className="w-64 p-1"
                                 >
-                                    <NavigationMenu className="">
-                                        <NavigationMenuList className="flex flex-col gap-5 px-5 pb-0 pt-5">
-                                            {navigationLinks.map(
-                                                (link, index) => (
-                                                    <NavigationMenuItem
-                                                        key={index}
-                                                        className="w-full"
+                                    <NavigationMenu>
+                                        <NavigationMenuList className="flex flex-col gap-5 p-5">
+                                            {navigationLinks.map((link, i) => (
+                                                <NavigationMenuItem
+                                                    key={i}
+                                                    className="w-full"
+                                                >
+                                                    <button
+                                                        onClick={() =>
+                                                            onCategoryClick?.(
+                                                                link.label
+                                                            )
+                                                        }
+                                                        className="flex gap-4 hover:text-primary w-full"
                                                     >
-                                                        <button
-                                                            onClick={() => onCategoryClick?.(link.label)}
-                                                            className="flex gap-5 hover:text-primary hover:font-semibold w-full text-left"
-                                                        >
-                                                            <img
-                                                                src={link.flag}
-                                                                alt={link.label}
-                                                            />
-                                                            <span>
-                                                                {link.label}
-                                                            </span>
-                                                        </button>
-                                                    </NavigationMenuItem>
-                                                )
-                                            )}
-                                            <NavigationMenuItem
-                                                className="w-full"
-                                                role="presentation"
-                                                aria-hidden={true}
-                                            >
-                                                <div
-                                                    role="separator"
-                                                    aria-orientation="horizontal"
-                                                    className="bg-border -mx-1 my-1 h-px"
-                                                />
-                                            </NavigationMenuItem>
+                                                        <img
+                                                            src={link.flag}
+                                                            alt=""
+                                                            className="w-6"
+                                                        />
+                                                        <span>
+                                                            {link.label}
+                                                        </span>
+                                                    </button>
+                                                </NavigationMenuItem>
+                                            ))}
                                         </NavigationMenuList>
                                     </NavigationMenu>
                                 </PopoverContent>
                             </Popover>
                         )}
-                        {/* Main nav */}
+
                         <div className="flex flex-1 items-center gap-6 justify-between lg:px-8">
-                            <button
-                                onClick={(e) => e.preventDefault()}
-                                className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer"
+                            <Link
+                                to="/"
+                                className="flex items-center space-x-2 text-primary hover:opacity-80"
                             >
                                 <div className="text-2xl">{logo}</div>
                                 <span className="hidden font-bold text-xl sm:inline-block">
-                                    <Link to={"/"}>Look n Read</Link>
+                                    Look n Read
                                 </span>
-                            </button>
-                            {/* Navigation menu */}
+                            </Link>
+
                             {!isMobile && (
-                                <NavigationMenu className="flex">
+                                <NavigationMenu>
                                     <NavigationMenuList className="gap-10">
-                                        {navigationLinks.map((link, index) => (
-                                            <NavigationMenuItem key={index}>
+                                        {navigationLinks.map((link, i) => (
+                                            <NavigationMenuItem key={i}>
                                                 <NavigationMenuLink
-                                                    href={link.href}
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        onCategoryClick?.(link.label);
-                                                    }}
-                                                    className="flex flex-col items-center cursor-pointer"
+                                                    onClick={() =>
+                                                        onCategoryClick?.(
+                                                            link.label
+                                                        )
+                                                    }
+                                                    className="flex flex-col items-center cursor-pointer font-bold hover:text-primary"
                                                 >
                                                     <img
                                                         src={link.flag}
-                                                        alt={link.label}
+                                                        alt=""
                                                         className="w-6"
                                                     />
-                                                    <span className="hover:text-primary font-bold">
-                                                        {link.label}
-                                                    </span>
+                                                    <span>{link.label}</span>
                                                 </NavigationMenuLink>
                                             </NavigationMenuItem>
                                         ))}
                                     </NavigationMenuList>
                                 </NavigationMenu>
                             )}
-                            {/* Search form */}
-                            <form
-                                onSubmit={handleSearchSubmit}
-                                className="relative"
-                            >
-                                <Input
-                                    id={searchId}
-                                    name="search"
-                                    className="peer h-8 ps-8 pe-2"
-                                    placeholder={searchPlaceholder}
-                                    type="search"
-                                />
-                                <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-2 peer-disabled:opacity-50">
-                                    <SearchIcon size={16} />
+
+                            {/* --- SEARCH INPUT FIXED --- */}
+                            <div className="relative flex gap-2 items-center">
+                                <div className="relative">
+                                    <Input
+                                        value={searchQuery}
+                                        onChange={(e) =>
+                                            setSearchQuery(e.target.value)
+                                        }
+                                        onKeyDown={handleKeyDown}
+                                        type="search"
+                                        placeholder={searchPlaceholder}
+                                        className="h-9 w-[150px] md:w-[200px] ps-8"
+                                    />
+                                    <div className="text-muted-foreground absolute inset-y-0 start-0 flex items-center justify-center ps-2 pointer-events-none">
+                                        <SearchIcon size={16} />
+                                    </div>
                                 </div>
-                            </form>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={handleSearchAction}
+                                >
+                                    Search
+                                </Button>
+                            </div>
+                            {/* ------------------------- */}
                         </div>
                     </div>
                 </div>
