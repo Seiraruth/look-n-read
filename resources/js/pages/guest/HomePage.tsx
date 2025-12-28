@@ -1,62 +1,68 @@
 import GuestLayout from "@/components/layouts/guest/GuestLayout";
 import { IComicChapter, IGenre } from "@/types/index.type";
 import axios from "axios";
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useContext, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/layouts/guest/Navbar";
 import CardComic from "@/components/guest-comp/CardComic";
 import Footer from "@/components/layouts/guest/Footer";
+import { Button } from "@/components/ui/button";
+import NoComic from "@/components/guest-comp/NoComic";
+import { Context } from "@/context/Context";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 export default function HomePage() {
     const [comics, setComics] = useState<IComicChapter[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [expandedCategory, setExpandedCategory] = useState<string | null>(
-        null
-    );
-    const [categoryComics, setCategoryComics] = useState<IComicChapter[]>([]);
-    const [isCategoryLoading, setIsCategoryLoading] = useState<boolean>(false);
-    const [searchParams, setSearchParams] = useSearchParams();
-
-    // Ambil value search dari URL (kalau ada)
-    const currentQuery = searchParams.get("search") || "";
+    // const [expandedCategory, setExpandedCategory] = useState<string | null>(
+    //     null
+    // );
+    // const [categoryComics, setCategoryComics] = useState<IComicChapter[]>([]);
+    // const [isCategoryLoading, setIsCategoryLoading] = useState<boolean>(false);
+    const [genres, setGenres] = useState<IGenre[]>([]);
+    const {
+        categoryComics,
+        isCategoryLoading,
+        expandedCategory,
+        setExpandedCategory,
+        setCategoryComics,
+        setIsCategoryLoading,
+    } = useContext(Context);
 
     useEffect(() => {
-        document.title = "Homepage";
+        document.title = "Homepage - guest";
     }, []);
 
     const fetchComics = useCallback(async () => {
         setIsLoading(true);
         try {
-            // Cek: Apakah di URL ada ?search=...
-            if (currentQuery) {
-                const res = await axios.get(
-                    `/api/comics?search=${currentQuery}`
-                );
-                setComics(res.data.data);
-            } else {
-                // Kalau gak ada, ambil semua
-                const res = await axios.get("/api/comics");
-                setComics(res.data.data);
-            }
+            const res = await axios.get("/api/comics");
+            setComics(res.data.data);
         } catch (error) {
             console.error(error);
         } finally {
             setIsLoading(false);
         }
-    }, [currentQuery]);
+    }, []);
 
     useEffect(() => {
         fetchComics();
     }, [fetchComics]);
 
-    // --- TAMBAHKAN FUNGSI INI: HANDLE SEARCH ---
-    const handleSearch = (query: string) => {
-        if (!query || query.trim() === "") {
-            setSearchParams({}); // Hapus query params kalau kosong
-        } else {
-            setSearchParams({ search: query }); // Ubah URL jadi ?search=query
+    // Fetch All Genres
+    const fetchGenres = useCallback(async () => {
+        try {
+            const response = await axios.get("/api/genres");
+            setGenres(response.data.data);
+        } catch (error) {
+            console.log("Fetch Genres", error);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchGenres();
+    }, [fetchGenres]);
 
     const handleCategoryClick = async (categoryName: string) => {
         try {
@@ -104,82 +110,68 @@ export default function HomePage() {
         };
     }, [expandedCategory]);
 
-    console.log("genres", comics);
+    console.log("comics", comics);
 
     return (
         <>
-            <Navbar
-                onCategoryClick={handleCategoryClick}
-                onSearchSubmit={handleSearch}
-            />
+            <Navbar onCategoryClick={handleCategoryClick} />
             {/* Main Content */}
             <GuestLayout>
-                {/* Latest Updates */}
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-white mb-6">
-                        Latest Updates
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {comics.length > 0 ? (
-                            comics
-                                .filter((comic) => comic && comic.id)
-                                .map((comic) => (
-                                    <Fragment key={comic.id}>
-                                        <CardComic
-                                            comic={comic}
-                                            isLoading={isLoading}
-                                        />
-                                    </Fragment>
-                                ))
-                        ) : (
-                            <div className="col-span-4">
-                                <p className="text-destructive font-bold text-5xl">
-                                    Comic Not Found 😱
-                                </p>
-                            </div>
-                        )}
+                <section className="flex gap-5 w-full flex-col lg:flex-row">
+                    {/* Latest Updates */}
+                    <div className="mb-8 w-full lg:w-9/12 bg-neutral-900 p-5 rounded-md">
+                        <div className="flex justify-between">
+                            <h2 className="text-2xl font-bold text-white mb-6">
+                                Latest Updates
+                            </h2>
+                            <Link to={`list-comic`}>
+                                <Badge className="uppercase text-[10px]">
+                                    View all
+                                </Badge>
+                            </Link>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 ">
+                            {comics.length > 0 ? (
+                                comics
+                                    .filter((comic) => comic && comic.id)
+                                    .map((comic) => (
+                                        <Fragment key={comic.id}>
+                                            <CardComic
+                                                comic={comic}
+                                                isLoading={isLoading}
+                                            />
+                                        </Fragment>
+                                    ))
+                            ) : (
+                                <div className="col-span-4">
+                                    <p className="text-destructive font-bold text-5xl">
+                                        Comic Not Found 😱
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
 
-                {/* Manga Terbaru */}
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-white mb-6">
-                        Manga Terbaru
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        Manga Terbaru Content
+                    {/* Genre Terbaru */}
+                    <div className="mb-8 w-full lg:w-3/12 bg-neutral-900 p-5 rounded-md">
+                        <h2 className="text-2xl font-bold text-white mb-6">
+                            Genre
+                        </h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-2 gap-2">
+                            {genres.length > 0 &&
+                                genres.map((genre) => (
+                                    <Link
+                                        to={`/genre/${genre.slug}`}
+                                        key={genre.id}
+                                    >
+                                        <Button className="w-full">
+                                            {genre.name}
+                                        </Button>
+                                    </Link>
+                                ))}
+                        </div>
                     </div>
-                </div>
-
-                {/* Manhua Terbaru */}
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-white mb-6">
-                        Manhua Terbaru
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        Manhua Terbaru Content
-                    </div>
-                </div>
-
-                {/* Manhwa Terbaru */}
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-white mb-6">
-                        Manhwa Terbaru
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        Manhwa Terbaru Content
-                    </div>
-                </div>
-
-                {/* Genre Terbaru */}
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-white mb-6">
-                        Genre
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        Genre Content
-                    </div>
-                </div>
+                </section>
             </GuestLayout>
 
             {/* Modal Overlay for Expanded Category */}

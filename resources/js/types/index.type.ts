@@ -41,13 +41,16 @@ export interface IChapter {
     slug: string;
     number: string;
     created_at: Date | string;
-    updated_at: Date | string | undefined;
+    updated_at: Date | string | null;
     published_at?: Date | string | null;
 }
 
 export interface IGenre {
     id: number;
     name: string;
+    slug: string;
+    created_at: Date | string | null;
+    updated_at: Date | string | null;
 }
 
 export interface IComicChapter extends IComic {

@@ -255,6 +255,7 @@ const FormAddChapter = () => {
                                                         onChange={
                                                             field.onChange
                                                         }
+                                                        maxFiles={200}
                                                     />
                                                 </FormControl>
                                                 <FormDescription>

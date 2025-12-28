@@ -9,8 +9,15 @@ export function cn(...inputs: ClassValue[]) {
 export const customIdLocale = {
     ...id,
     formatDistance: (token: any, count: any, options: any) => {
-        const originalOutput = id.formatDistance(token, count, options);
+        let result = id.formatDistance(token, count, options);
 
-        return originalOutput.replace(/sekitar\s/i, "");
+        if (result === "setengah menit") {
+            return "30 detik";
+        }
+
+        result = result.replace(/sekitar /i, "");
+        result = result.replace(/kurang dari /i, "");
+
+        return result;
     },
 };

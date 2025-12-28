@@ -16,9 +16,14 @@ import {
 interface FileUploadDemoTypes {
     value?: File[];
     onChange: (files: File[]) => void;
+    maxFiles: number;
 }
 
-export function FileUploadDemo({ value, onChange }: FileUploadDemoTypes) {
+export function FileUploadDemo({
+    value,
+    onChange,
+    maxFiles,
+}: FileUploadDemoTypes) {
     const onFileReject = React.useCallback((file: File, message: string) => {
         toast(message, {
             description: `"${
@@ -31,7 +36,7 @@ export function FileUploadDemo({ value, onChange }: FileUploadDemoTypes) {
 
     return (
         <FileUpload
-            maxFiles={100}
+            maxFiles={maxFiles}
             maxSize={5 * 1024 * 1024}
             className="w-full max-w-full mt-3"
             value={value}

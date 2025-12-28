@@ -24,9 +24,9 @@ const DetailPage = () => {
     const getImageUrl = (imagePath: string | undefined) => {
         if (!imagePath) return undefined;
         // If it already starts with http/https, return as-is
-        if (imagePath.startsWith('http')) return imagePath;
-        // If it starts with storage/, return as-is 
-        if (imagePath.startsWith('storage/')) return `/${imagePath}`;
+        if (imagePath.startsWith("http")) return imagePath;
+        // If it starts with storage/, return as-is
+        if (imagePath.startsWith("storage/")) return `/${imagePath}`;
         // Otherwise, prepend /storage/
         return `/storage/${imagePath}`;
     };
@@ -75,11 +75,15 @@ const DetailPage = () => {
                                     <Skeleton className="w-full h-full" />
                                 ) : (
                                     <img
-                                        src={getImageUrl(comic?.cover_image) || `https://picsum.photos/seed/${comic?.slug}/200/300`}
+                                        src={
+                                            getImageUrl(comic?.cover_image) ||
+                                            `https://picsum.photos/seed/${comic?.slug}/200/300`
+                                        }
                                         alt={`Comic ${comic?.title}`}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
+                                            const target =
+                                                e.target as HTMLImageElement;
                                             target.src = `https://picsum.photos/seed/${comic?.slug}/200/300`;
                                         }}
                                     />
@@ -189,9 +193,11 @@ const DetailPage = () => {
                                         {isLoading ? (
                                             <Skeleton className="w-28 h-10" />
                                         ) : (
-                                            <Badge className="text-md">
-                                                {genre.name}
-                                            </Badge>
+                                            <Link to={`/genre/${genre.slug}`}>
+                                                <Badge className="text-md">
+                                                    {genre.name}
+                                                </Badge>
+                                            </Link>
                                         )}
                                     </Fragment>
                                 ))}

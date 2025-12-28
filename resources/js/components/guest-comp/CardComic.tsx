@@ -20,7 +20,7 @@ const CardComic = ({ comic, isLoading }: IProps) => {
                     ) : (
                         <>
                             <img
-                                src={comic.cover_image}
+                                src={comic.image_url}
                                 alt={`Comic ${comic.title}`}
                                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                             />
@@ -59,7 +59,7 @@ const CardComic = ({ comic, isLoading }: IProps) => {
                         >
                             <Button
                                 variant={"outline"}
-                                className="text-[10px] sm:text-xs text-gray-600 w-full mt-3 flex justify-between flex-wrap"
+                                className="text-[10px] sm:text-xs text-neutral-50 w-full mt-3 flex justify-between flex-wrap hover:text-purple-400"
                             >
                                 <span>{comic.chapters.at(-1)?.title}</span>
                                 <span>
