@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Genre;
+use Illuminate\Support\Str;
 
 class GenreSeeder extends Seeder
 {
@@ -79,7 +80,10 @@ class GenreSeeder extends Seeder
         sort($genres);
 
         foreach ($genres as $genreName) {
-            Genre::firstOrCreate(['name' => $genreName]);
+            Genre::create([
+                'name' => $genreName,
+                'slug' => Str::slug($genreName)
+            ]);
         }
     }
 }

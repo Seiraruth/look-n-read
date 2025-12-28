@@ -379,6 +379,7 @@ const FormEditComic = () => {
                                                         onChange={
                                                             field.onChange
                                                         }
+                                                        maxFiles={1}
                                                     />
                                                 </FormItem>
                                             )}

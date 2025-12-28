@@ -312,6 +312,7 @@ const FormAddComic = () => {
                                                 <FileUploadDemo
                                                     value={field.value}
                                                     onChange={field.onChange}
+                                                    maxFiles={1}
                                                 />
                                             </FormItem>
                                         )}

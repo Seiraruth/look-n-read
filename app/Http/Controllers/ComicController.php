@@ -7,7 +7,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -26,7 +25,6 @@ class ComicController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%");
-                // ->orWhere('author', 'like', "%{$search}%");
             });
         }
 
@@ -42,42 +40,16 @@ class ComicController extends Controller
 
         // 2. BARU: Filter by Genre
         // Logic: Cari komik yang PUNYA (whereHas) genre dengan ID tertentu
-        if ($request->has('genre_id')) {
-            $query->whereHas('genres', function ($q) use ($request) {
-                $q->where('id', $request->input('genre_id'));
+        if ($request->has('genre')) {
+            $genreParam = $request->input('genre');
+            $query->whereHas('genres', function ($q) use ($genreParam) {
+                $q->where('slug', $genreParam);
             });
         }
 
         $comics = $query->latest()->paginate(12);
 
         return response()->json($comics);
-    }
-
-    /**
-     * Get comics statistics by type.
-     */
-    public function stats(): JsonResponse
-    {
-        try {
-            $stats = [
-                'manga' => Comic::where('type', 'manga')->count(),
-                'manhwa' => Comic::where('type', 'manhwa')->count(),
-                'manhua' => Comic::where('type', 'manhua')->count(),
-            ];
-
-            return response()->json([
-                'data' => $stats
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error fetching comics stats: ' . $e->getMessage());
-            return response()->json([
-                'data' => [
-                    'manga' => 0,
-                    'manhwa' => 0,
-                    'manhua' => 0,
-                ]
-            ], 500);
-        }
     }
 
     /**

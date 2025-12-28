@@ -266,6 +266,7 @@ const FormEditChapter = () => {
                                                         onChange={
                                                             field.onChange
                                                         }
+                                                        maxFiles={200}
                                                     />
                                                 </FormControl>
                                                 <FormDescription>
@@ -290,7 +291,7 @@ const FormEditChapter = () => {
                                                     Uploading...
                                                 </>
                                             ) : (
-                                                "Add Chapter"
+                                                "Update Chapter"
                                             )}
                                         </Button>
                                         <Button

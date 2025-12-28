@@ -17,15 +17,16 @@ import FormAddChapter from "./pages/admin/FormAddChapter";
 import FormEditChapter from "./pages/admin/FormEditChapter";
 import DetailPage from "./pages/guest/DetailPage";
 import ReadChapter from "./pages/guest/ReadChapter";
+import GenreComic from "./pages/guest/GenreComic";
+import SearchComic from "./pages/guest/SearchComic";
+import ContextProvider from "./context/Context";
+import ListComic from "./pages/guest/ListComic";
 
 function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
                 <Routes>
-                    {/* Guest Routes */}
-                    <Route path="/" element={<HomePage />} />
-
                     {/* Admin Auth Routes */}
                     <Route path="/admin/login" element={<AdminAuth />} />
                     <Route
@@ -93,12 +94,21 @@ function App() {
                         }
                     />
 
+                    {/*****************  Guest Routes *****************/}
+                    <Route path="/" element={<HomePage />} />
+
                     <Route path="/:slug" element={<DetailPage />} />
 
                     <Route
                         path="/read/:slug/:chapterNumber"
                         element={<ReadChapter />}
                     />
+
+                    <Route path="/genre/:slug" element={<GenreComic />} />
+
+                    <Route path="/comics" element={<SearchComic />} />
+
+                    <Route path="/list-comic" element={<ListComic />} />
 
                     {/* Fallback */}
                     <Route path="*" element={<NotFound />} />
@@ -112,8 +122,10 @@ const rootElement = document.getElementById("app");
 if (rootElement) {
     createRoot(rootElement).render(
         <React.StrictMode>
-            <App />
-            <Toaster />
+            <ContextProvider>
+                <App />
+                <Toaster />
+            </ContextProvider>
         </React.StrictMode>
     );
 }

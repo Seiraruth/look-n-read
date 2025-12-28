@@ -15,7 +15,12 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import {
+    Link,
+    useLocation,
+    useNavigate,
+    useSearchParams,
+} from "react-router-dom";
 
 // --- COMPONENTS ---
 const Logo = (props: React.SVGAttributes<SVGElement>) => {
@@ -96,9 +101,13 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
     ) => {
         const [isMobile, setIsMobile] = useState(false);
         const containerRef = useRef<HTMLElement>(null);
+        const navigate = useNavigate();
+        const location = useLocation();
 
         // 1. STATE UNTUK SEARCH
-        const [searchQuery, setSearchQuery] = useState("");
+        const [searchParams] = useSearchParams();
+        const currentQuery = searchParams.get("search") || "";
+        const [searchQuery, setSearchQuery] = useState(currentQuery);
 
         useEffect(() => {
             const checkWidth = () => {
@@ -121,8 +130,10 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
 
         // 2. TRIGGER SEARCH (Tanpa Reload)
         const handleSearchAction = () => {
-            // Validasi: Jangan search kalau kosong
-            console.log("Searching for:", searchQuery);
+            if (location.pathname !== "/comics") {
+                navigate(`/comics?search=${searchQuery}`);
+            }
+
             if (onSearchSubmit) {
                 onSearchSubmit(searchQuery);
             }
