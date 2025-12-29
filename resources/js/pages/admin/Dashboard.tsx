@@ -25,11 +25,12 @@ import { ComicsType } from "@/types/index.type";
 import { toast } from "sonner";
 
 const Dashboard = () => {
-    const [currentPage, setCurrentPage] = useState(1);
     const [comics, setComics] = useState<ComicsType[]>([]);
     const [searchParams, setSearchParams] = useSearchParams();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const searchRef = useRef(null);
+
+    const currentPage = Number(searchParams.get("page")) || 1;
 
     const currentQuery = searchParams.get("search") || "";
 
@@ -39,6 +40,23 @@ const Dashboard = () => {
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
+
+    useEffect(() => {
+        if (!searchParams.has("page")) {
+            const params = new URLSearchParams(searchParams);
+            params.set("page", "1");
+            console.log(params);
+            setSearchParams(params, { replace: true });
+        }
+    }, [searchParams, setSearchParams]);
+
+    const handleChangePage = (page: number) => {
+        const params = new URLSearchParams(searchParams);
+        params.set("page", page.toString());
+        setSearchParams(params);
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
     useEffect(() => {
         document.title = "Dashboard - admin";
@@ -86,11 +104,15 @@ const Dashboard = () => {
     }, [fetchComic]);
 
     const handleSearch = (queryRef: any) => {
+        const params = new URLSearchParams(searchParams);
+
         if (!queryRef && queryRef.trim() === "") {
-            setSearchParams({});
+            params.delete("search");
         } else {
-            setSearchParams({ search: queryRef });
+            params.set("search", queryRef);
         }
+        params.delete("page");
+        setSearchParams(params);
     };
 
     const handleSearchEnter = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -101,6 +123,38 @@ const Dashboard = () => {
                     ?.value as string
             );
         }
+    };
+
+    const generatePagination = (currentPage: number, totalPage: number) => {
+        if (totalPage <= 7) {
+            return Array.from({ length: totalPage }, (_, i) => i + 1);
+        }
+
+        if (currentPage <= 4) {
+            return [1, 2, 3, 4, 5, "...", totalPage];
+        }
+
+        if (currentPage >= totalPage - 3) {
+            return [
+                1,
+                "...",
+                totalPage - 4,
+                totalPage - 3,
+                totalPage - 2,
+                totalPage - 1,
+                totalPage,
+            ];
+        }
+
+        return [
+            1,
+            "...",
+            currentPage - 1,
+            currentPage,
+            currentPage + 1,
+            "...",
+            totalPage,
+        ];
     };
 
     return (
@@ -115,6 +169,7 @@ const Dashboard = () => {
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
                                         ref={searchRef}
+                                        type="search"
                                         placeholder="Search comic"
                                         className="pl-10"
                                         onKeyDown={handleSearchEnter}
@@ -207,12 +262,18 @@ const Dashboard = () => {
                                                             </div>
                                                         </td>
                                                         <td className="p-4">
-                                                            <span className="text-sm text-muted-foreground">
-                                                                {comic.title}
+                                                            <span className="text-sm text-muted-foreground line-clamp-1">
+                                                                {comic.title
+                                                                    .length > 40
+                                                                    ? `${comic.title.substring(
+                                                                          0,
+                                                                          40
+                                                                      )}...`
+                                                                    : comic.title}
                                                             </span>
                                                         </td>
                                                         <td className="p-4">
-                                                            <span className="text-sm font-medium text-foreground text-nowrap">
+                                                            <span className="text-sm font-medium text-foreground text-nowrap capitalize">
                                                                 {comic.type}
                                                             </span>
                                                         </td>
@@ -220,7 +281,7 @@ const Dashboard = () => {
                                                             {comic.status ? (
                                                                 <Badge
                                                                     variant="outline"
-                                                                    className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800"
+                                                                    className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800 capitalize"
                                                                 >
                                                                     {
                                                                         comic.status
@@ -338,7 +399,7 @@ const Dashboard = () => {
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={() =>
-                                                    setCurrentPage(
+                                                    handleChangePage(
                                                         Math.max(
                                                             1,
                                                             currentPage - 1
@@ -350,35 +411,44 @@ const Dashboard = () => {
                                             >
                                                 <ChevronLeft className="h-4 w-4" />
                                             </Button>
-                                            {Array.from(
-                                                { length: totalPages },
-                                                (_, i) => i + 1
-                                            ).map((page) => (
-                                                <Button
-                                                    key={page}
-                                                    variant={
-                                                        currentPage === page
-                                                            ? "default"
-                                                            : "outline"
-                                                    }
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        setCurrentPage(page)
-                                                    }
-                                                    className={cn(
-                                                        currentPage === page &&
-                                                            "bg-primary",
-                                                        "cursor-pointer"
-                                                    )}
-                                                >
-                                                    {page}
-                                                </Button>
-                                            ))}
+                                            {generatePagination(
+                                                currentPage,
+                                                totalPages
+                                            ).map((page, index) => {
+                                                if (page === "...") {
+                                                    return (
+                                                        <span
+                                                            key={`ellipsis-${index}`}
+                                                            className="px-2 text-muted-foreground"
+                                                        >
+                                                            ...
+                                                        </span>
+                                                    );
+                                                }
+                                                return (
+                                                    <Button
+                                                        key={page}
+                                                        variant={
+                                                            currentPage === page
+                                                                ? "default"
+                                                                : "outline"
+                                                        }
+                                                        size={"icon"}
+                                                        onClick={() =>
+                                                            handleChangePage(
+                                                                Number(page)
+                                                            )
+                                                        }
+                                                    >
+                                                        {page}
+                                                    </Button>
+                                                );
+                                            })}
                                             <Button
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={() =>
-                                                    setCurrentPage(
+                                                    handleChangePage(
                                                         Math.min(
                                                             totalPages,
                                                             currentPage + 1

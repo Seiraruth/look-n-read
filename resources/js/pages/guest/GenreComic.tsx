@@ -68,49 +68,59 @@ const GenreComic = () => {
     return (
         <>
             <Navbar />
-            <GuestLayout>
-                <HeaderPage>
-                    Genre :{" "}
-                    <span className="font-bold capitalize">
-                        {slug?.split("-").join(" ")}
-                    </span>
-                </HeaderPage>
-
-                <div className="my-10 flex gap-5">
-                    <Select
-                        value={selectType}
-                        onValueChange={(value) => setSelectType(value)}
-                        defaultValue="all"
-                    >
-                        <SelectTrigger className="w-1/4">
-                            <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectLabel>Type Comic</SelectLabel>
-                                <SelectItem value="all">Type</SelectItem>
-                                <SelectItem value="manga">Manga</SelectItem>
-                                <SelectItem value="manhua">Manhua</SelectItem>
-                                <SelectItem value="manhwa">Manhwa</SelectItem>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-
-                    <Button onClick={handleSelect}>Search</Button>
+            {isLoading ? (
+                <div className="flex justify-center items-center min-h-screen">
+                    <img src="/assets/gifs/zoro-loading.gif" alt="" />
                 </div>
+            ) : (
+                <GuestLayout>
+                    <HeaderPage>
+                        Genre :{" "}
+                        <span className="font-bold capitalize">
+                            {slug?.split("-").join(" ")}
+                        </span>
+                    </HeaderPage>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 my-20">
-                    {comicByGenre.length > 0 &&
-                        comicByGenre.map((comic) => (
-                            <Fragment key={comic.id}>
-                                <CardComic
-                                    comic={comic}
-                                    isLoading={isLoading}
-                                />
-                            </Fragment>
-                        ))}
-                </div>
-            </GuestLayout>
+                    <div className="my-10 flex gap-5">
+                        <Select
+                            value={selectType}
+                            onValueChange={(value) => setSelectType(value)}
+                            defaultValue="all"
+                        >
+                            <SelectTrigger className="w-1/4">
+                                <SelectValue placeholder="Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectLabel>Type Comic</SelectLabel>
+                                    <SelectItem value="all">Type</SelectItem>
+                                    <SelectItem value="manga">Manga</SelectItem>
+                                    <SelectItem value="manhua">
+                                        Manhua
+                                    </SelectItem>
+                                    <SelectItem value="manhwa">
+                                        Manhwa
+                                    </SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+
+                        <Button onClick={handleSelect}>Search</Button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 my-20">
+                        {comicByGenre.length > 0 &&
+                            comicByGenre.map((comic) => (
+                                <Fragment key={comic.id}>
+                                    <CardComic
+                                        comic={comic}
+                                        isLoading={isLoading}
+                                    />
+                                </Fragment>
+                            ))}
+                    </div>
+                </GuestLayout>
+            )}
             <Footer />
         </>
     );

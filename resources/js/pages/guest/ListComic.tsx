@@ -1,6 +1,7 @@
 import CardComic from "@/components/guest-comp/CardComic";
 import HeaderPage from "@/components/guest-comp/HeaderPage";
 import NoComic from "@/components/guest-comp/NoComic";
+import Footer from "@/components/layouts/guest/Footer";
 import GuestLayout from "@/components/layouts/guest/GuestLayout";
 import { Navbar } from "@/components/layouts/guest/Navbar";
 import { Button } from "@/components/ui/button";
@@ -126,112 +127,145 @@ const ListComic = () => {
         } else {
             params.delete("type");
         }
-
+        params.delete("page");
         setSearchParams(params);
+    };
+
+    const handleReset = () => {
+        const params = new URLSearchParams(searchParams);
+        params.delete("type");
+        params.delete("genre");
+        params.delete("status");
+        setSearchParams(params);
+        setSelectGenre("all");
+        setSelectType("all");
+        setSelectStatus("all");
     };
 
     return (
         <>
             <Navbar />
-            <GuestLayout>
-                <HeaderPage>List Comic</HeaderPage>
 
-                {/* Filteres */}
-                <div className="my-10 flex gap-5">
-                    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                        <DialogTrigger asChild className="w-1/4">
-                            <Button
-                                variant="outline"
-                                className="flex justify-start capitalize"
-                            >
-                                {selectGenre !== "all"
-                                    ? `Genre: ${selectGenre
-                                          .split("-")
-                                          .join(" ")}`
-                                    : "Genre"}
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="w-[320px] sm:w-[420px] my-20">
-                            <ScrollArea className="h-72 w-full rounded-md border">
-                                <RadioGroup
-                                    defaultValue="comfortable"
-                                    className="grid grid-cols-2"
-                                    onValueChange={(value) =>
-                                        setSelectGenre(value)
-                                    }
-                                    value={selectGenre}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <RadioGroupItem value="all" id="all" />
-                                        <Label htmlFor="all">Genre</Label>
-                                    </div>
-                                    {genres.length > 0 &&
-                                        genres.map((genre) => (
-                                            <div className="flex items-center gap-3">
-                                                <RadioGroupItem
-                                                    value={genre.slug}
-                                                    id={genre.slug}
-                                                />
-                                                <Label htmlFor={genre.slug}>
-                                                    {genre.name}
-                                                </Label>
-                                            </div>
-                                        ))}
-                                </RadioGroup>
-                            </ScrollArea>
-                            <Button onClick={() => setIsOpen(false)}>
-                                Select
-                            </Button>
-                        </DialogContent>
-                    </Dialog>
-
-                    <Select
-                        value={selectStatus}
-                        onValueChange={(value) => setSelectStatus(value)}
-                        defaultValue="all"
-                    >
-                        <SelectTrigger className="w-1/4">
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectLabel>Status Comic</SelectLabel>
-                                <SelectItem value="all">Status</SelectItem>
-                                <SelectItem value="ongoing">Ongoing</SelectItem>
-                                <SelectItem value="completed">
-                                    Completed
-                                </SelectItem>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-
-                    <Select
-                        value={selectType}
-                        onValueChange={(value) => setSelectType(value)}
-                        defaultValue="all"
-                    >
-                        <SelectTrigger className="w-1/4">
-                            <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                <SelectLabel>Type Comic</SelectLabel>
-                                <SelectItem value="all">Type</SelectItem>
-                                <SelectItem value="manga">Manga</SelectItem>
-                                <SelectItem value="manhua">Manhua</SelectItem>
-                                <SelectItem value="manhwa">Manhwa</SelectItem>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-
-                    <Button onClick={handleSelect}>Search</Button>
+            {isLoading ? (
+                <div className="flex justify-center items-center min-h-screen">
+                    <img src="/assets/gifs/zoro-loading.gif" alt="" />
                 </div>
+            ) : (
+                <GuestLayout>
+                    <HeaderPage>List Comic</HeaderPage>
 
-                {isLoading ? (
-                    <div className="flex justify-center items-center ">
-                        <img src="/assets/gifs/zoro-loading.gif" alt="" />
+                    {/* Filteres */}
+                    <div className="my-10 flex gap-5">
+                        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                            <DialogTrigger asChild className="w-1/4">
+                                <Button
+                                    variant="outline"
+                                    className="flex justify-start capitalize"
+                                >
+                                    {selectGenre !== "all"
+                                        ? `Genre: ${selectGenre
+                                              .split("-")
+                                              .join(" ")}`
+                                        : "Genre"}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="w-[320px] sm:w-[420px] my-20">
+                                <ScrollArea className="h-72 w-full rounded-md border">
+                                    <RadioGroup
+                                        defaultValue="comfortable"
+                                        className="grid grid-cols-2"
+                                        onValueChange={(value) =>
+                                            setSelectGenre(value)
+                                        }
+                                        value={selectGenre}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <RadioGroupItem
+                                                value="all"
+                                                id="all"
+                                            />
+                                            <Label htmlFor="all">Genre</Label>
+                                        </div>
+                                        {genres.length > 0 &&
+                                            genres.map((genre) => (
+                                                <div className="flex items-center gap-3">
+                                                    <RadioGroupItem
+                                                        value={genre.slug}
+                                                        id={genre.slug}
+                                                    />
+                                                    <Label htmlFor={genre.slug}>
+                                                        {genre.name}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                    </RadioGroup>
+                                </ScrollArea>
+                                <Button onClick={() => setIsOpen(false)}>
+                                    Select
+                                </Button>
+                            </DialogContent>
+                        </Dialog>
+
+                        <Select
+                            value={selectStatus}
+                            onValueChange={(value) => setSelectStatus(value)}
+                            defaultValue="all"
+                        >
+                            <SelectTrigger className="w-1/4">
+                                <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectLabel>Status Comic</SelectLabel>
+                                    <SelectItem value="all">Status</SelectItem>
+                                    <SelectItem value="ongoing">
+                                        Ongoing
+                                    </SelectItem>
+                                    <SelectItem value="completed">
+                                        Completed
+                                    </SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={selectType}
+                            onValueChange={(value) => setSelectType(value)}
+                            defaultValue="all"
+                        >
+                            <SelectTrigger className="w-1/4">
+                                <SelectValue placeholder="Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectLabel>Type Comic</SelectLabel>
+                                    <SelectItem value="all">Type</SelectItem>
+                                    <SelectItem value="manga">Manga</SelectItem>
+                                    <SelectItem value="manhua">
+                                        Manhua
+                                    </SelectItem>
+                                    <SelectItem value="manhwa">
+                                        Manhwa
+                                    </SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+
+                        <div className="w-1/4 flex gap-5">
+                            <Button className="w-full" onClick={handleSelect}>
+                                Search
+                            </Button>
+                            <Button
+                                className="w-full"
+                                variant={"destructive"}
+                                onClick={handleReset}
+                            >
+                                Reset
+                            </Button>
+                        </div>
                     </div>
-                ) : (
+
+                    {/* List Comic */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5 my-10 bg-neutral-900 p-10 rounded-md">
                         {currentComics.length > 0 ? (
                             <>
@@ -252,61 +286,65 @@ const ListComic = () => {
                             </div>
                         )}
                     </div>
-                )}
-                <div className="flex items-center justify-between p-4 border-t border-border">
-                    <div className="text-sm text-muted-foreground">
-                        Showing {(currentPage - 1) * ITEM_PER_PAGE + 1} to{" "}
-                        {Math.min(currentPage * ITEM_PER_PAGE, comics?.length)}{" "}
-                        of {comics?.length} entries
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant={"outline"}
-                            size={"icon"}
-                            disabled={currentPage === 1}
-                            onClick={() => {
-                                // setCurrentPage(Math.max(1, currentPage - 1));
-                                handlePage(Math.max(1, currentPage - 1));
-                            }}
-                        >
-                            <ChevronLeft />
-                        </Button>
-                        {Array.from(
-                            { length: TOTAL_PAGE },
-                            (_, i) => i + 1
-                        ).map((page) => (
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between p-4 border-t border-border">
+                        <div className="text-sm text-muted-foreground">
+                            Showing {(currentPage - 1) * ITEM_PER_PAGE + 1} to{" "}
+                            {Math.min(
+                                currentPage * ITEM_PER_PAGE,
+                                comics?.length
+                            )}{" "}
+                            of {comics?.length} entries
+                        </div>
+
+                        <div className="flex items-center gap-2">
                             <Button
-                                key={page}
-                                variant={
-                                    currentPage === page ? "default" : "outline"
-                                }
+                                variant={"outline"}
                                 size={"icon"}
+                                disabled={currentPage === 1}
                                 onClick={() => {
-                                    // setCurrentPage(page);
-                                    handlePage(page);
+                                    handlePage(Math.max(1, currentPage - 1));
                                 }}
                             >
-                                {page}
+                                <ChevronLeft />
                             </Button>
-                        ))}
-                        <Button
-                            variant={"outline"}
-                            size={"icon"}
-                            onClick={() => {
-                                // setCurrentPage(
-                                //     Math.min(TOTAL_PAGE, currentPage + 1)
-                                // );
-                                handlePage(
-                                    Math.min(TOTAL_PAGE, currentPage + 1)
-                                );
-                            }}
-                        >
-                            <ChevronRight />
-                        </Button>
+                            {Array.from(
+                                { length: TOTAL_PAGE },
+                                (_, i) => i + 1
+                            ).map((page) => (
+                                <Button
+                                    key={page}
+                                    variant={
+                                        currentPage === page
+                                            ? "default"
+                                            : "outline"
+                                    }
+                                    size={"icon"}
+                                    onClick={() => {
+                                        handlePage(page);
+                                    }}
+                                >
+                                    {page}
+                                </Button>
+                            ))}
+                            <Button
+                                variant={"outline"}
+                                size={"icon"}
+                                onClick={() => {
+                                    handlePage(
+                                        Math.min(TOTAL_PAGE, currentPage + 1)
+                                    );
+                                }}
+                            >
+                                <ChevronRight />
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            </GuestLayout>
+                </GuestLayout>
+            )}
+
+            <Footer />
         </>
     );
 };

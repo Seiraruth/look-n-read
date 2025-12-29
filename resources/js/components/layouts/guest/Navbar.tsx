@@ -168,9 +168,7 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
                 console.error("Error fetching category comics:", error);
                 setCategoryComics([]);
             } finally {
-                setTimeout(() => {
-                    setIsCategoryLoading(false);
-                }, 3000);
+                setIsCategoryLoading(false);
             }
         };
 

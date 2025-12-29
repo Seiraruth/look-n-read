@@ -26,9 +26,7 @@ export default function HomePage() {
         } catch (error) {
             console.error(error);
         } finally {
-            setTimeout(() => {
-                setIsLoading(false);
-            }, 3000);
+            setIsLoading(false);
         }
     }, []);
 
