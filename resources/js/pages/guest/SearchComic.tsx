@@ -1,4 +1,5 @@
 import CardComic from "@/components/guest-comp/CardComic";
+import HeaderPage from "@/components/guest-comp/HeaderPage";
 import NoComic from "@/components/guest-comp/NoComic";
 import GuestLayout from "@/components/layouts/guest/GuestLayout";
 import { Navbar } from "@/components/layouts/guest/Navbar";
@@ -29,13 +30,12 @@ const SearchComic = () => {
         } catch (error) {
             console.error(error);
         } finally {
-            setTimeout(() => {
-                setIsLoading(false);
-            }, 3000);
+            setIsLoading(false);
         }
     }, [searchQuery]);
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
         fetchComics();
     }, [fetchComics]);
 
@@ -51,28 +51,37 @@ const SearchComic = () => {
     return (
         <>
             <Navbar onSearchSubmit={handleSearch} />
-            <GuestLayout>
-                <div className="border-2 border-secondary mb-10 p-5 rounded-sm bg-primary">
-                    <p className="text-secondary text-2xl font-bold">
-                        Hasil Pencarian {searchQuery.split("+").join(" ")}
-                    </p>
-                </div>
 
-                {comics.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {comics.map((comic) => (
-                            <Fragment key={comic.id}>
-                                <CardComic
-                                    comic={comic}
-                                    isLoading={isLoading}
-                                />
-                            </Fragment>
-                        ))}
-                    </div>
-                ) : (
-                    <NoComic>No Comic 😴</NoComic>
-                )}
-            </GuestLayout>
+            {isLoading ? (
+                <div className="flex justify-center items-center min-h-screen">
+                    <img src="/assets/gifs/zoro-loading.gif" alt="" />
+                </div>
+            ) : (
+                <GuestLayout>
+                    <HeaderPage>
+                        <p className="text-2xl font-bold">
+                            Hasil Pencarian: {searchQuery.split("+").join(" ")}
+                        </p>
+                    </HeaderPage>
+
+                    {comics.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            {comics.map((comic) => (
+                                <Fragment key={comic.id}>
+                                    <CardComic
+                                        comic={comic}
+                                        isLoading={isLoading}
+                                    />
+                                </Fragment>
+                            ))}
+                        </div>
+                    ) : (
+                        <NoComic>No Comic 😴</NoComic>
+                    )}
+                </GuestLayout>
+            )}
+
+            {/* Footer */}
         </>
     );
 };

@@ -48,10 +48,6 @@ function App() {
 
                     {/*****************  Admin Routes *****************/}
                     <Route path="/admin/login" element={<AdminAuth />} />
-                    <Route
-                        path="/admin"
-                        element={<Navigate to="/admin/login" replace />}
-                    />
 
                     {/* Admin Protected Routes */}
                     <Route

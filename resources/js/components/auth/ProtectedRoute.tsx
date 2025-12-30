@@ -7,13 +7,13 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-    const { admin, isLoading, isAuthenticated } = useAuth();
+    const { isLoading, isAuthenticated } = useAuth();
 
     // Sedang loading - tampilkan spinner
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-screen">
-                Loading...
+            <div className="flex justify-center items-center min-h-screen">
+                <img src="/assets/gifs/zoro-loading.gif" alt="Loading...." />
             </div>
         );
     }

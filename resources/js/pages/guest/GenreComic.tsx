@@ -32,8 +32,8 @@ const GenreComic = () => {
     }, []);
 
     const fetchComicByGenre = useCallback(async () => {
-        if (!slug) return;
         setIsLoading(true);
+        if (!slug) return;
         try {
             if (typeQuery.toLowerCase()) {
                 const res = await axios.get(
@@ -47,13 +47,12 @@ const GenreComic = () => {
         } catch (error) {
             console.error("Fetch Comic By Genre", error as AxiosError);
         } finally {
-            setTimeout(() => {
-                setIsLoading(false);
-            }, 3000);
+            setIsLoading(false);
         }
     }, [slug, typeQuery]);
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "instant" });
         fetchComicByGenre();
     }, [fetchComicByGenre]);
 

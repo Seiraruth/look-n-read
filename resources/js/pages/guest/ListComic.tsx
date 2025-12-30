@@ -35,7 +35,7 @@ const ListComic = () => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const currentPage = Number(searchParams.get("page")) || 1;
 
-    const ITEM_PER_PAGE = 20;
+    const ITEM_PER_PAGE = 24;
     const TOTAL_PAGE = Math.ceil(comics?.length / ITEM_PER_PAGE);
     const currentComics = comics?.slice(
         (currentPage - 1) * ITEM_PER_PAGE,
@@ -74,6 +74,7 @@ const ListComic = () => {
     }, [statusParams, typeParams, genreParams]);
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "instant" });
         fetchComic();
     }, [currentPage, fetchComic]);
 
@@ -140,6 +141,39 @@ const ListComic = () => {
         setSelectGenre("all");
         setSelectType("all");
         setSelectStatus("all");
+    };
+
+    const generatePagination = (currentPage: number, totalPage: number) => {
+        if (totalPage <= 7) {
+            return Array.from({ length: totalPage }, (_, i) => i + 1);
+        }
+
+        if (currentPage <= 4) {
+            return [1, 2, 3, 4, 5, "...", totalPage];
+        }
+
+        if (currentPage >= totalPage - 3) {
+            return [
+                1,
+                "...",
+                totalPage - 5,
+                totalPage - 4,
+                totalPage - 3,
+                totalPage - 2,
+                totalPage - 1,
+                totalPage,
+            ];
+        }
+
+        return [
+            1,
+            "...",
+            currentPage - 1,
+            currentPage,
+            currentPage + 1,
+            "...",
+            totalPage,
+        ];
     };
 
     return (
@@ -309,28 +343,41 @@ const ListComic = () => {
                             >
                                 <ChevronLeft />
                             </Button>
-                            {Array.from(
-                                { length: TOTAL_PAGE },
-                                (_, i) => i + 1
-                            ).map((page) => (
-                                <Button
-                                    key={page}
-                                    variant={
-                                        currentPage === page
-                                            ? "default"
-                                            : "outline"
+                            {generatePagination(currentPage, TOTAL_PAGE).map(
+                                (page, index) => {
+                                    if (page === "...") {
+                                        return (
+                                            <span
+                                                key={`ellipsis-${index}`}
+                                                className="px-2 text-muted-foreground"
+                                            >
+                                                ...
+                                            </span>
+                                        );
                                     }
-                                    size={"icon"}
-                                    onClick={() => {
-                                        handlePage(page);
-                                    }}
-                                >
-                                    {page}
-                                </Button>
-                            ))}
+
+                                    return (
+                                        <Button
+                                            key={index}
+                                            onClick={() =>
+                                                handlePage(Number(page))
+                                            }
+                                            size={"icon"}
+                                            variant={
+                                                currentPage === page
+                                                    ? "default"
+                                                    : "outline"
+                                            }
+                                        >
+                                            {page}
+                                        </Button>
+                                    );
+                                }
+                            )}
                             <Button
                                 variant={"outline"}
                                 size={"icon"}
+                                disabled={currentPage >= TOTAL_PAGE}
                                 onClick={() => {
                                     handlePage(
                                         Math.min(TOTAL_PAGE, currentPage + 1)

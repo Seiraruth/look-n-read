@@ -1,3 +1,4 @@
+import Footer from "@/components/layouts/guest/Footer";
 import GuestLayout from "@/components/layouts/guest/GuestLayout";
 import { Navbar } from "@/components/layouts/guest/Navbar";
 import { Badge } from "@/components/ui/badge";
@@ -44,26 +45,27 @@ const DetailPage = () => {
             }
         } catch (error) {
             console.error("DetailPage fetch error: ", error);
-            // Don't set comic to avoid type issues, let it remain undefined
         } finally {
-            setTimeout(() => {
-                setIsLoading(false);
-            }, 1500);
+            setIsLoading(false);
         }
     }, [slug]);
 
     useEffect(() => {
         fetchData();
-        setTimeout(() => {
-            setIsLoading(false);
-        }, 3000);
     }, [fetchData]);
 
-    console.log(comic);
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                <img src="/assets/gifs/zoro-loading.gif" alt="" />
+            </div>
+        );
+    }
 
     return (
         <>
             <Navbar />
+
             <GuestLayout>
                 <section>
                     {/* Start: Comic Image and Detail Comic */}
@@ -288,6 +290,8 @@ const DetailPage = () => {
                 </section>
                 {/* End: List Chapter Comic */}
             </GuestLayout>
+
+            <Footer />
         </>
     );
 };
