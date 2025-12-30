@@ -3,49 +3,39 @@ import HeaderPage from "@/components/guest-comp/HeaderPage";
 import NoComic from "@/components/guest-comp/NoComic";
 import GuestLayout from "@/components/layouts/guest/GuestLayout";
 import { Navbar } from "@/components/layouts/guest/Navbar";
+import { Context } from "@/context/Context";
+import useFetch from "@/hooks/use-fetch";
 import { IComicChapter } from "@/types/index.type";
 import axios from "axios";
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useContext, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 const SearchComic = () => {
     const [comics, setComics] = useState<IComicChapter[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [searchParams, setSearchParams] = useSearchParams();
+    const { isLoading } = useContext(Context);
+    const { getAllComic } = useFetch();
 
     const searchQuery = searchParams.get("search") || "";
 
     const fetchComics = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            if (searchQuery) {
-                const res = await axios.get(
-                    `/api/comics?search=${searchQuery}`
-                );
-                setComics(res.data.data);
-            } else {
-                const res = await axios.get("/api/comics");
-                setComics(res.data.data);
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
+        window.scrollTo({ top: 0, behavior: "instant" });
+        const data = await getAllComic({ search: searchQuery });
+        setComics(data);
     }, [searchQuery]);
 
     useEffect(() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
         fetchComics();
     }, [fetchComics]);
 
-    // --- TAMBAHKAN FUNGSI INI: HANDLE SEARCH ---
     const handleSearch = (query: string) => {
+        const params = new URLSearchParams(searchParams);
         if (!query || query.trim() === "") {
-            setSearchParams({}); // Hapus query params kalau kosong
+            params.delete("search");
         } else {
-            setSearchParams({ search: query }); // Ubah URL jadi ?search=query
+            params.set("search", query);
         }
+        setSearchParams(params);
     };
 
     return (

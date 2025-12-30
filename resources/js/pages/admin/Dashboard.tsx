@@ -1,4 +1,11 @@
-import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+    KeyboardEvent,
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,21 +24,24 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import AdminLayout from "@/components/layouts/admin/AdminLayout";
 import { Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { ComicsType } from "@/types/index.type";
 import { toast } from "sonner";
+import usePagination from "@/hooks/use-pagination";
+import { Context } from "@/context/Context";
+import useFetch from "@/hooks/use-fetch";
 
 const Dashboard = () => {
     const [comics, setComics] = useState<ComicsType[]>([]);
     const [searchParams, setSearchParams] = useSearchParams();
-    const [isLoading, setIsLoading] = useState<boolean>(false);
     const searchRef = useRef(null);
+    const { isLoading } = useContext(Context);
+    const { generatePagination } = usePagination();
+    const { getAllComic } = useFetch();
 
     const currentPage = Number(searchParams.get("page")) || 1;
-
     const currentQuery = searchParams.get("search") || "";
 
     const itemsPerPage = 10;
@@ -54,8 +64,7 @@ const Dashboard = () => {
         const params = new URLSearchParams(searchParams);
         params.set("page", page.toString());
         setSearchParams(params);
-
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo({ top: 0, behavior: "instant" });
     };
 
     useEffect(() => {
@@ -70,7 +79,6 @@ const Dashboard = () => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
             setComics((prevComics) =>
                 prevComics.filter((comic) => comic.id !== id)
             );
@@ -81,22 +89,8 @@ const Dashboard = () => {
     };
 
     const fetchComic = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            if (currentQuery) {
-                const response = await axios.get(
-                    `/api/comics?search=${currentQuery}`
-                );
-                setComics(response.data.data);
-            } else {
-                const response = await axios.get("/api/comics");
-                setComics(response?.data.data);
-            }
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setIsLoading(false);
-        }
+        const data = await getAllComic({ search: currentQuery });
+        setComics(data);
     }, [currentQuery]);
 
     useEffect(() => {
@@ -123,38 +117,6 @@ const Dashboard = () => {
                     ?.value as string
             );
         }
-    };
-
-    const generatePagination = (currentPage: number, totalPage: number) => {
-        if (totalPage <= 7) {
-            return Array.from({ length: totalPage }, (_, i) => i + 1);
-        }
-
-        if (currentPage <= 4) {
-            return [1, 2, 3, 4, 5, "...", totalPage];
-        }
-
-        if (currentPage >= totalPage - 3) {
-            return [
-                1,
-                "...",
-                totalPage - 4,
-                totalPage - 3,
-                totalPage - 2,
-                totalPage - 1,
-                totalPage,
-            ];
-        }
-
-        return [
-            1,
-            "...",
-            currentPage - 1,
-            currentPage,
-            currentPage + 1,
-            "...",
-            totalPage,
-        ];
     };
 
     return (

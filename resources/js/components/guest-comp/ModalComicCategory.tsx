@@ -89,6 +89,7 @@ const ModalComicCategory = () => {
                                                     isLoading={
                                                         isCategoryLoading
                                                     }
+                                                    closeModal={closeModal}
                                                 />
                                             </Fragment>
                                         ))}

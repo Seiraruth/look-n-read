@@ -18,6 +18,8 @@ interface IContext {
     setCategoryComics: Dispatch<SetStateAction<IComicChapter[]>>;
     isCategoryLoading: boolean;
     setIsCategoryLoading: Dispatch<SetStateAction<boolean>>;
+    isLoading: boolean;
+    setIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 export const Context = createContext<IContext>({
@@ -27,6 +29,8 @@ export const Context = createContext<IContext>({
     setCategoryComics: () => {},
     isCategoryLoading: false,
     setIsCategoryLoading: () => {},
+    isLoading: false,
+    setIsLoading: () => {},
 });
 
 const ContextProvider = ({ children }: TChildren) => {
@@ -35,6 +39,7 @@ const ContextProvider = ({ children }: TChildren) => {
     );
     const [categoryComics, setCategoryComics] = useState<IComicChapter[]>([]);
     const [isCategoryLoading, setIsCategoryLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const ContextValue = {
         expandedCategory,
@@ -43,6 +48,8 @@ const ContextProvider = ({ children }: TChildren) => {
         setCategoryComics,
         isCategoryLoading,
         setIsCategoryLoading,
+        isLoading,
+        setIsLoading,
     };
 
     return <Context.Provider value={ContextValue}>{children}</Context.Provider>;

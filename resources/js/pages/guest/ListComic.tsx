@@ -18,21 +18,28 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Context } from "@/context/Context";
+import useFetch from "@/hooks/use-fetch";
+import usePagination from "@/hooks/use-pagination";
 import { IGenre } from "@/types/index.type";
 import axios from "axios";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useContext, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 const ListComic = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [comics, setComics] = useState<[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [selectType, setSelectType] = useState<string>("all");
     const [selectStatus, setSelectStatus] = useState<string>("all");
     const [selectGenre, setSelectGenre] = useState<string>("all");
     const [genres, setGenres] = useState<IGenre[]>([]);
     const [isOpen, setIsOpen] = useState<boolean>(false);
+
+    const { generatePagination } = usePagination();
+    const { getAllComic } = useFetch();
+    const { isLoading } = useContext(Context);
+
     const currentPage = Number(searchParams.get("page")) || 1;
 
     const ITEM_PER_PAGE = 24;
@@ -51,26 +58,12 @@ const ListComic = () => {
     }, []);
 
     const fetchComic = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const params: {
-                type?: string;
-                status?: string;
-                genre?: string;
-            } = {};
-            if (genreParams) params.genre = genreParams;
-            if (typeParams) params.type = typeParams;
-            if (statusParams) params.status = statusParams;
-
-            const res = await axios.get("/api/comics", {
-                params: params,
-            });
-            setComics(res.data.data);
-        } catch (error) {
-            console.error("fetch list comic", error);
-        } finally {
-            setIsLoading(false);
-        }
+        const data = await getAllComic({
+            type: typeParams,
+            status: statusParams,
+            genre: genreParams,
+        });
+        setComics(data);
     }, [statusParams, typeParams, genreParams]);
 
     useEffect(() => {
@@ -79,7 +72,7 @@ const ListComic = () => {
     }, [currentPage, fetchComic]);
 
     useEffect(() => {
-        if (!searchParams.has("page")) {
+        if (!searchParams.has("page") as boolean) {
             const params = new URLSearchParams(searchParams);
             params.set("page", "1");
             setSearchParams(params, { replace: true });
@@ -141,39 +134,6 @@ const ListComic = () => {
         setSelectGenre("all");
         setSelectType("all");
         setSelectStatus("all");
-    };
-
-    const generatePagination = (currentPage: number, totalPage: number) => {
-        if (totalPage <= 7) {
-            return Array.from({ length: totalPage }, (_, i) => i + 1);
-        }
-
-        if (currentPage <= 4) {
-            return [1, 2, 3, 4, 5, "...", totalPage];
-        }
-
-        if (currentPage >= totalPage - 3) {
-            return [
-                1,
-                "...",
-                totalPage - 5,
-                totalPage - 4,
-                totalPage - 3,
-                totalPage - 2,
-                totalPage - 1,
-                totalPage,
-            ];
-        }
-
-        return [
-            1,
-            "...",
-            currentPage - 1,
-            currentPage,
-            currentPage + 1,
-            "...",
-            totalPage,
-        ];
     };
 
     return (
@@ -303,8 +263,8 @@ const ListComic = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5 my-10 bg-neutral-900 p-10 rounded-md">
                         {currentComics.length > 0 ? (
                             <>
-                                {currentComics.map((comic) => (
-                                    <Fragment>
+                                {currentComics.map((comic, index) => (
+                                    <Fragment key={index}>
                                         <CardComic
                                             comic={comic}
                                             isLoading={isLoading}

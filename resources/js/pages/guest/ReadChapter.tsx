@@ -117,7 +117,7 @@ const ReadChapter = () => {
                 {/* Header Navigasi */}
                 <div className="p-4 flex justify-between items-center bg-gray-800 sticky top-0 z-10 shadow-md">
                     <Link
-                        to={`/${slug}`}
+                        to={`/comic-detail/${slug}`}
                         className="text-blue-400 hover:underline"
                     >
                         &larr; Detail Komik

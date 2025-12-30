@@ -1,34 +1,32 @@
 import GuestLayout from "@/components/layouts/guest/GuestLayout";
 import { IComicChapter, IGenre } from "@/types/index.type";
 import axios from "axios";
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/layouts/guest/Navbar";
 import CardComic from "@/components/guest-comp/CardComic";
 import Footer from "@/components/layouts/guest/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Context } from "@/context/Context";
+import useFetch from "@/hooks/use-fetch";
 
 export default function HomePage() {
     const [comics, setComics] = useState<IComicChapter[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    // const [isLoading, setIsLoading] = useState<boolean>(false);
     const [genres, setGenres] = useState<IGenre[]>([]);
+
+    const { isLoading } = useContext(Context);
+    const { getAllComic } = useFetch();
 
     useEffect(() => {
         document.title = "Homepage";
     }, []);
 
     const fetchComics = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const res = await axios.get("/api/comics");
-            setComics(res.data.data.slice(0, 15));
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+        const data = await getAllComic();
+        setComics(data.slice(0, 15));
+    }, [setComics]);
 
     useEffect(() => {
         fetchComics();

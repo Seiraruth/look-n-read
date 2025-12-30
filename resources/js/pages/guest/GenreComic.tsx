@@ -13,55 +13,47 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Context } from "@/context/Context";
+import useFetch from "@/hooks/use-fetch";
 import { IComicChapter } from "@/types/index.type";
 import axios, { AxiosError } from "axios";
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useContext, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
 const GenreComic = () => {
     const { slug } = useParams();
     const [comicByGenre, setComicByGenre] = useState<IComicChapter[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [searchParams, setSearchParams] = useSearchParams();
     const [selectType, setSelectType] = useState<string>("all");
 
-    const typeQuery = searchParams.get("type") || "";
+    const { isLoading } = useContext(Context);
+    const { getAllComic } = useFetch();
+
+    const typeParams = searchParams.get("type") || "";
 
     useEffect(() => {
         document.title = "Genre";
     }, []);
 
     const fetchComicByGenre = useCallback(async () => {
-        setIsLoading(true);
-        if (!slug) return;
-        try {
-            if (typeQuery.toLowerCase()) {
-                const res = await axios.get(
-                    `/api/comics?genre=${slug}&type=${typeQuery}`
-                );
-                setComicByGenre(res.data.data);
-            } else {
-                const res = await axios.get(`/api/comics?genre=${slug}`);
-                setComicByGenre(res.data.data);
-            }
-        } catch (error) {
-            console.error("Fetch Comic By Genre", error as AxiosError);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [slug, typeQuery]);
+        window.scrollTo({ top: 0, behavior: "instant" });
+        const data = await getAllComic({ genre: slug, type: typeParams });
+        setComicByGenre(data);
+    }, [slug, typeParams]);
 
     useEffect(() => {
-        window.scrollTo({ top: 0, behavior: "instant" });
         fetchComicByGenre();
     }, [fetchComicByGenre]);
 
     const handleSelect = () => {
-        if (selectType.toLowerCase() === "all") {
-            setSearchParams({});
+        const params = new URLSearchParams(searchParams);
+        if (selectType.toLowerCase() && selectType === "all") {
+            params.delete("type");
         } else {
-            setSearchParams({ type: selectType });
+            params.set("type", selectType);
         }
+
+        setSearchParams(params);
     };
 
     return (

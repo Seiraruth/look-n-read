@@ -49,8 +49,6 @@ const FormAddChapter = () => {
     const [comicName, setComicName] = useState<string>();
     const [isLoading, setIsLoading] = useState(false);
 
-    // 1. SOLUSI TS ERROR: Hapus <FormSchema> generic.
-    // Biarkan useForm meng-infer tipe langsung dari resolver.
     const form = useForm({
         resolver: zodResolver(formAddComicSchema),
         defaultValues: {

@@ -152,13 +152,13 @@ export const Navbar = React.forwardRef<HTMLElement, Navbar04Props>(
             }
         };
 
-        const handleCategoryClick = async (categoryName: string) => {
+        const handleCategoryClick = async (TypeParams: string) => {
             try {
-                setExpandedCategory(categoryName);
+                setExpandedCategory(TypeParams);
                 setIsCategoryLoading(true);
 
                 const res = await axios.get(
-                    `/api/comics?type=${categoryName.toLowerCase()}`
+                    `/api/comics?type=${TypeParams.toLowerCase()}`
                 );
                 const categoryData = res.data.data || res.data || [];
                 setCategoryComics(

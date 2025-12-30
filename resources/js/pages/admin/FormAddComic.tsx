@@ -37,19 +37,20 @@ const formAddComicSchema = z.object({
     slug: z
         .string()
         .min(1, { message: "Slug is required" })
-        .regex(/^\S*$/, "Tidak boleh ada spasi"),
+        .regex(/^\S*$/, "Cannot have spaces"),
     author: z.string().min(1, { message: "Author is required" }),
     status: z.string().min(1, { message: "Status is required" }),
     type: z.string().min(1, { message: "Type is required" }),
     synopsis: z.string().min(1, { message: "Synopsis is required" }),
     cover: z.array(z.instanceof(File)).min(1, { message: "Cover is required" }),
-    genres: z.array(z.number()).min(1, { message: "Pilih minimal 1 genre" }),
+    genres: z.array(z.number()).min(1, { message: "Choose at least 1 genre" }),
 });
 
 const FormAddComic = () => {
-    const token = localStorage.getItem("token");
     const navigate = useNavigate();
+    const token = localStorage.getItem("token");
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
     const form = useForm<z.infer<typeof formAddComicSchema>>({
         resolver: zodResolver(formAddComicSchema),
         defaultValues: {
@@ -123,7 +124,7 @@ const FormAddComic = () => {
                         <div className="flex flex-col sm:flex-row items-center gap-4 mt-10">
                             <Form {...form}>
                                 <form
-                                    className="flex flex-col w-full"
+                                    className="flex flex-col w-full gap-3"
                                     onSubmit={form.handleSubmit(handleAddComic)}
                                 >
                                     <FormField
@@ -131,7 +132,9 @@ const FormAddComic = () => {
                                         name="title"
                                         render={({ field }) => (
                                             <FormItem className="w-full">
-                                                <FormLabel>Title</FormLabel>
+                                                <FormLabel className="uppercase tracking-widest">
+                                                    Title
+                                                </FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="text"
@@ -139,7 +142,6 @@ const FormAddComic = () => {
                                                         {...field}
                                                     />
                                                 </FormControl>
-                                                <FormDescription />
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -149,7 +151,9 @@ const FormAddComic = () => {
                                         name="slug"
                                         render={({ field }) => (
                                             <FormItem className="w-full">
-                                                <FormLabel>Slug</FormLabel>
+                                                <FormLabel className="uppercase tracking-widest">
+                                                    Slug
+                                                </FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="text"
@@ -157,6 +161,7 @@ const FormAddComic = () => {
                                                         {...field}
                                                     />
                                                 </FormControl>
+                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
@@ -165,7 +170,9 @@ const FormAddComic = () => {
                                         name="author"
                                         render={({ field }) => (
                                             <FormItem className="w-full">
-                                                <FormLabel>Author</FormLabel>
+                                                <FormLabel className="uppercase tracking-widest">
+                                                    Author
+                                                </FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="text"
@@ -173,6 +180,7 @@ const FormAddComic = () => {
                                                         placeholder="Example: Eiichiro Oda, Akutami Gege, etc."
                                                     />
                                                 </FormControl>
+                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
@@ -182,7 +190,7 @@ const FormAddComic = () => {
                                         name="type"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="mt-3">
+                                                <FormLabel className="uppercase tracking-widest">
                                                     Type
                                                 </FormLabel>
                                                 <Select

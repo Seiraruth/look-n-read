@@ -8,9 +8,10 @@ import { IComicChapter } from "@/types/index.type";
 interface IProps {
     comic: IComicChapter;
     isLoading: boolean;
+    closeModal?: () => void;
 }
 
-const CardComic = ({ comic, isLoading }: IProps) => {
+const CardComic = ({ comic, isLoading, closeModal }: IProps) => {
     return (
         <div className="group cursor-pointer">
             <Link to={`/comic-detail/${comic.slug}`}>
@@ -23,6 +24,7 @@ const CardComic = ({ comic, isLoading }: IProps) => {
                                 src={comic.image_url}
                                 alt={`Comic ${comic.title}`}
                                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                onClick={closeModal}
                             />
                             <img
                                 src={`/assets/flags/${
@@ -46,7 +48,10 @@ const CardComic = ({ comic, isLoading }: IProps) => {
                 </div>
             ) : (
                 <div className="mt-2">
-                    <Link to={`/comic-detail/${comic.slug}`}>
+                    <Link
+                        to={`/comic-detail/${comic.slug}`}
+                        onClick={closeModal}
+                    >
                         <h3 className="text-sm font-medium text-gray-300 truncate hover:text-purple-400 transition-colors hover:underline">
                             {comic.title}
                         </h3>
@@ -56,6 +61,7 @@ const CardComic = ({ comic, isLoading }: IProps) => {
                             to={`/read/${comic.slug}/${
                                 comic.chapters.at(-1)?.number
                             }`}
+                            onClick={closeModal}
                         >
                             <Button
                                 variant={"outline"}
