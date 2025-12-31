@@ -44,12 +44,10 @@ class Comic extends Model
         return $this->belongsToMany(Genre::class, 'comic_genre');
     }
 
-    // --- BOOT BERSIH ---
     protected static function boot()
     {
         parent::boot();
 
-        // CUMA SISAKAN INI (Auto Slug)
         static::creating(function ($comic) {
             if (empty($comic->slug)) {
                 $comic->slug = Str::slug($comic->title);

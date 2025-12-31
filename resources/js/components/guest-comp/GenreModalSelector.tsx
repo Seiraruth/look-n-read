@@ -18,9 +18,9 @@ import { PlusCircle, Check } from "lucide-react";
 import { IGenre } from "@/types/index.type";
 
 type GenreModalSelectorProps = {
-    selectedGenres: number[]; // ID yang sudah tersimpan di Form Utama
-    onSave: (genres: number[]) => void; // Fungsi buat update Form Utama
-    error?: string; // Pesan error dari Zod
+    selectedGenres: number[];
+    onSave: (genres: number[]) => void;
+    error?: string;
 };
 
 export default function GenreModalSelector({
@@ -31,15 +31,11 @@ export default function GenreModalSelector({
     const [open, setOpen] = useState(false);
     const [genres, setGenres] = useState<IGenre[]>([]);
     const [loading, setLoading] = useState(true);
-
-    // State Sementara (Temp)
-    // Ini menampung centangan user SEBELUM tombol Save diklik
     const [tempSelected, setTempSelected] = useState<number[]>([]);
 
     const fetchGenres = useCallback(async () => {
         try {
             const res = await axios.get("/api/genres");
-            console.log(res.data);
             setGenres(res.data.data || res.data);
         } catch (err) {
             console.error(err);
@@ -48,27 +44,22 @@ export default function GenreModalSelector({
         }
     }, []);
 
-    // 1. Ambil Data API
     useEffect(() => {
         fetchGenres();
     }, [fetchGenres]);
 
-    console.log("Genres", genres);
-
-    // 2. Sinkronisasi State saat Dialog Dibuka
-    // Setiap kali dialog dibuka, isi tempSelected dengan data yang sudah tersimpan (selectedGenres)
     useEffect(() => {
         if (open) {
             setTempSelected(selectedGenres);
         }
     }, [open, selectedGenres]);
 
-    // 3. Handle Centang/Uncentang (Di tataran Temp State)
     const handleToggle = (id: number) => {
-        setTempSelected((prev) =>
-            prev.includes(id)
-                ? prev.filter((item) => item !== id)
-                : [...prev, id]
+        setTempSelected(
+            (prev) =>
+                prev.includes(id)
+                    ? prev.filter((item) => item !== id) // this to remove the id if id has in array
+                    : [...prev, id] // add id to array if id hasn't in array
         );
     };
 
@@ -109,7 +100,7 @@ export default function GenreModalSelector({
                             </div>
                         ) : (
                             <span className="text-muted-foreground">
-                                Pilih Genre...
+                                Choose Genre...
                             </span>
                         )}
                         <PlusCircle className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -118,10 +109,10 @@ export default function GenreModalSelector({
 
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Pilih Genre</DialogTitle>
+                        <DialogTitle>Choose Genre</DialogTitle>
                         <DialogDescription>
-                            Pilih genre yang sesuai. Klik simpan untuk
-                            menerapkan perubahan.
+                            Choose the appropriate genre. Click save to apply
+                            the changes.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -162,11 +153,11 @@ export default function GenreModalSelector({
                             variant="outline"
                             onClick={() => setOpen(false)}
                         >
-                            Batal
+                            Cancel
                         </Button>
                         <Button onClick={handleSave} disabled={loading}>
                             <Check className="mr-2 h-4 w-4" />
-                            Simpan Pilihan ({tempSelected.length})
+                            Save Selection ({tempSelected.length})
                         </Button>
                     </DialogFooter>
                 </DialogContent>

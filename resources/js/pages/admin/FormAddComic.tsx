@@ -75,12 +75,15 @@ const FormAddComic = () => {
         formData.append("type", values.type);
         formData.append("status", values.status);
         formData.append("synopsis", values.synopsis);
+
         values.cover.forEach((file) => {
             formData.append("cover_image", file);
         });
+
         values.genres.forEach((genreId) => {
             formData.append("genres[]", genreId.toString());
         });
+
         setIsLoading(true);
         try {
             const response = await axios.post(
@@ -132,12 +135,12 @@ const FormAddComic = () => {
                                         name="title"
                                         render={({ field }) => (
                                             <FormItem className="w-full">
-                                                <FormLabel className="uppercase tracking-widest">
-                                                    Title
-                                                </FormLabel>
+                                                <FormLabel>Title</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="text"
+                                                        autoComplete="off"
+                                                        autoFocus
                                                         placeholder="Example: One Piece, Solo Leveling, Magic Emperor, etc."
                                                         {...field}
                                                     />
@@ -146,17 +149,17 @@ const FormAddComic = () => {
                                             </FormItem>
                                         )}
                                     />
+
                                     <FormField
                                         control={form.control}
                                         name="slug"
                                         render={({ field }) => (
                                             <FormItem className="w-full">
-                                                <FormLabel className="uppercase tracking-widest">
-                                                    Slug
-                                                </FormLabel>
+                                                <FormLabel>Slug</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="text"
+                                                        autoComplete="off"
                                                         placeholder="Example: one-piece, dragon-ball, solo-leveling, etc."
                                                         {...field}
                                                     />
@@ -165,34 +168,33 @@ const FormAddComic = () => {
                                             </FormItem>
                                         )}
                                     />
+
                                     <FormField
                                         control={form.control}
                                         name="author"
                                         render={({ field }) => (
                                             <FormItem className="w-full">
-                                                <FormLabel className="uppercase tracking-widest">
-                                                    Author
-                                                </FormLabel>
+                                                <FormLabel>Author</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="text"
-                                                        {...field}
+                                                        autoComplete="off"
                                                         placeholder="Example: Eiichiro Oda, Akutami Gege, etc."
+                                                        {...field}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
+
                                     {/* Select Type Comic */}
                                     <FormField
                                         control={form.control}
                                         name="type"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="uppercase tracking-widest">
-                                                    Type
-                                                </FormLabel>
+                                                <FormLabel>Type</FormLabel>
                                                 <Select
                                                     value={field.value}
                                                     onValueChange={
@@ -204,6 +206,7 @@ const FormAddComic = () => {
                                                             <SelectValue placeholder="Type Comic" />
                                                         </SelectTrigger>
                                                     </FormControl>
+                                                    <FormMessage />
                                                     <SelectContent>
                                                         <SelectGroup>
                                                             <SelectLabel>
@@ -221,19 +224,17 @@ const FormAddComic = () => {
                                                         </SelectGroup>
                                                     </SelectContent>
                                                 </Select>
-                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
+
                                     {/* Select Status Comic */}
                                     <FormField
                                         control={form.control}
                                         name="status"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="mt-3">
-                                                    Status
-                                                </FormLabel>
+                                                <FormLabel>Status</FormLabel>
                                                 <Select
                                                     value={field.value}
                                                     onValueChange={
@@ -241,10 +242,11 @@ const FormAddComic = () => {
                                                     }
                                                 >
                                                     <FormControl>
-                                                        <SelectTrigger className="w-full mt-3">
+                                                        <SelectTrigger className="w-full">
                                                             <SelectValue placeholder="Status Comic" />
                                                         </SelectTrigger>
                                                     </FormControl>
+                                                    <FormMessage />
                                                     <SelectContent>
                                                         <SelectGroup>
                                                             <SelectLabel>
@@ -259,24 +261,24 @@ const FormAddComic = () => {
                                                         </SelectGroup>
                                                     </SelectContent>
                                                 </Select>
-                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
+
                                     <FormField
                                         control={form.control}
                                         name="synopsis"
                                         render={({ field }) => (
-                                            <FormItem className="mt-5">
+                                            <FormItem>
                                                 <FormLabel htmlFor="synopsis">
                                                     Synopsis
                                                 </FormLabel>
                                                 <FormControl>
                                                     <Textarea
                                                         id="synopsis"
-                                                        {...field}
-                                                        className="mt-3"
+                                                        rows={10}
                                                         placeholder="Write Synopsis here etc..."
+                                                        {...field}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -288,26 +290,24 @@ const FormAddComic = () => {
                                         control={form.control}
                                         name="genres"
                                         render={({ field }) => (
-                                            <FormItem className="mt-5">
+                                            <FormItem>
                                                 <FormLabel>Genres</FormLabel>
                                                 <FormControl>
-                                                    {/* Komponen Modal Kita */}
                                                     <GenreModalSelector
                                                         selectedGenres={
                                                             field.value
-                                                        } // Kirim value dari form
-                                                        onSave={field.onChange} // Fungsi update form pas tombol Save diklik
+                                                        }
+                                                        onSave={field.onChange}
                                                         error={
                                                             form.formState
                                                                 .errors.genres
                                                                 ?.message
-                                                        } // Kirim error buat styling merah
+                                                        }
                                                     />
                                                 </FormControl>
                                                 <FormDescription>
-                                                    Minimal pilih 1 genre. Klik
-                                                    tombol di atas untuk membuka
-                                                    pilihan.
+                                                    Choose min 1 genre. Klik
+                                                    button to open choosen
                                                 </FormDescription>
                                                 <FormMessage />
                                             </FormItem>

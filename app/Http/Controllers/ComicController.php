@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreComicRequest;
 use App\Models\Comic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -57,41 +58,17 @@ class ComicController extends Controller
     /**
      * Store a newly created comic.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreComicRequest $request): JsonResponse
     {
-        // 1. Validasi
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:comics,slug',
-            'author' => 'required|string|max:255',
-            'status' => 'required|in:ongoing,completed',
-            'type' => 'required|in:manga,manhwa,manhua',
-            'synopsis' => 'required|string',
-            'cover_image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // Increased to 5MB
+        $validated = $request->validated();
 
-            // --- TAMBAHAN BARU: Validasi Genre ---
-            'genres' => 'required|array', // Harus berupa array (contoh: [1, 3])
-            'genres.*' => 'exists:genres,id', // Pastikan ID-nya valid di tabel genres
-        ]);
-
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
-            // 2. Persiapan Data
-            // Kita harus buang 'cover_image' DAN 'genres' dari array data.
-            // Kenapa 'genres' dibuang? Karena tabel comics gak punya kolom 'genres'.
             $dataToCreate = Arr::except($validated, ['cover_image', 'genres']);
-
-            // --- PENTING: FIX ERROR DATABASE ---
-            // Kita isi 'pending' dulu biar database gak marah (Error 1364)
-            // Nanti di bawah kita timpa dengan path gambar asli.
             $dataToCreate['cover_image'] = 'pending';
 
-            // 3. Buat Comic
             $comic = Comic::create($dataToCreate);
 
-            // 4. SIMPAN RELASI GENRE (Baru!)
-            // Ambil array ID dari request, tempel ke komik yang baru dibuat
             if ($request->has('genres')) {
                 $comic->genres()->attach($request->genres);
             }

@@ -53,7 +53,8 @@ export function FileUploadDemo({
                         Drag & drop cover here
                     </p>
                     <p className="text-muted-foreground text-xs">
-                        Or click to browse (max 2 files, up to 5MB each)
+                        Or click to browse (max {maxFiles} files, up to 5MB
+                        each)
                     </p>
                 </div>
                 <FileUploadTrigger asChild>
